@@ -3,134 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tactical Shooter: Full Code Version</title>
+    <title>Tactical Shooter: NEW YEAR</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #151520; /* Темніший фон */
+            background-color: #1a1a2e;
             font-family: 'Courier New', Courier, monospace;
             color: white;
             user-select: none;
             -webkit-user-select: none;
             touch-action: none;
         }
-        canvas { display: block; width: 100%; height: 100%; }
+        canvas { display: block; }
         
-        /* --- НОВИЙ ІНТЕРФЕЙС (Для зручності) --- */
+        /* UI */
         #game-ui {
             display: none;
             position: absolute;
-            top: 0; left: 0;
-            width: 100%;
-            padding: 10px;
-            box-sizing: border-box;
+            top: 10px; left: 10px;
             pointer-events: none;
+            width: 100%;
+            box-sizing: border-box;
+            padding-right: 20px;
             z-index: 5;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
         }
         #top-bar {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
         }
-        
-        /* Статистика зліва */
-        .hud-left { display: flex; flex-direction: column; gap: 5px; }
-        
-        /* Статистика справа */
-        .hud-right { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; }
-
-        .stat-text {
-            font-size: 14px; font-weight: bold; text-shadow: 1px 1px 0 #000;
+        .stat-box {
+            background: rgba(0,0,0,0.6);
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            font-size: 16px;
+            border: 1px solid rgba(255,255,255,0.2);
         }
-
         #mission-text {
-            font-size: 20px; font-weight: bold; color: #44DDFF;
-            text-shadow: 2px 2px 0 #000; margin-bottom: 5px;
+            font-size: 18px; font-weight: bold; color: #77DDFF;
+            text-shadow: 1px 1px 0 #000;
         }
-
-        /* СМУЖКИ (Трохи менші, щоб не заважали) */
+        #weapon-info { color: #aaa; }
+        #grenade-counter { color: #FFA500; font-weight: bold; }
+        #coin-counter { color: #FFFF00; font-weight: bold; }
+        
+        /* HP & XP BARS */
         .bar-container {
-            width: 150px; height: 10px;
-            background: #333; border: 1px solid #777;
-            position: relative; margin-bottom: 2px;
+            margin-top: 5px; width: 200px; height: 15px;
+            background: #444; border: 2px solid #fff;
+            position: relative;
         }
         #health-fill {
             width: 100%; height: 100%;
             background: #00FF00; transition: width 0.1s;
         }
         #xp-bar-container {
-            width: 150px; height: 5px; border: none; background: #222;
+            margin-top: 5px; height: 10px; border-color: #0077FF;
         }
         #xp-fill {
             width: 0%; height: 100%;
             background: #0077FF; transition: width 0.2s;
         }
         #level-text {
-            font-size: 12px; color: #0077FF; font-weight: bold;
+            position: absolute; top: -20px; left: 0;
+            font-size: 14px; color: #0077FF; font-weight: bold;
         }
 
-        /* --- МЕНЮ ТА МАГАЗИН --- */
+        /* МЕНЮ */
         .overlay {
             position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(15, 20, 30, 0.95);
+            background: rgba(10, 20, 40, 0.95);
             display: flex; flex-direction: column;
             justify-content: center; align-items: center; 
             z-index: 20;
         }
         h1 { margin-bottom: 5px; font-size: 28px; color: #00AAFF; text-align: center; text-transform: uppercase; text-shadow: 0 0 10px white; }
+        h2 { margin-bottom: 10px; font-size: 16px; color: #aaa; }
+        .menu-stats { color: #FFFF00; margin-bottom: 20px; font-size: 14px; border: 1px solid #555; padding: 10px; text-align: center; }
         
-        /* Сітка кнопок місій */
         .mission-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;
-            max-height: 50vh; overflow-y: auto; width: 90%; max-width: 500px;
+            max-height: 60vh; overflow-y: auto;
         }
 
         .btn {
             background: #222; color: white;
-            border: 2px solid #0077FF; padding: 15px; /* Більші кнопки */
-            font-size: 14px; cursor: pointer;
+            border: 2px solid #0077FF; padding: 10px;
+            font-size: 12px; cursor: pointer; width: 160px;
             text-align: center; font-family: inherit; margin: 2px;
-            border-radius: 8px;
         }
-        .btn:active { background: #0077FF; color: black; }
+        .btn:hover { background: #0077FF; color: black; }
         .boss-btn { border-color: #A020F0; color: #E0E0E0; }
         .hard-btn { border-color: #FF3333; color: #FFAAAA; }
         .special-btn { border-color: #00FFCC; color: #AAFFFF; }
-        .shop-btn { 
-            border-color: #FFFF00; color: #FFFFAA; 
-            width: 80%; max-width: 300px; margin-top: 10px; font-size: 18px; font-weight: bold;
-        }
+        .shop-btn { border-color: #FFFF00; color: #FFFFAA; width: 340px; margin-top: 10px; font-size: 16px; font-weight: bold;}
 
-        /* --- МАГАЗИН (Зручний список) --- */
-        #shop-screen { display: none; width: 100%; height: 100%; overflow-y: auto; padding-top: 20px; }
-        .shop-content {
-            display: flex; flex-direction: column; align-items: center; gap: 20px; padding-bottom: 50px;
+        /* МАГАЗИН */
+        #shop-screen { display: none; }
+        .shop-container {
+            display: flex; gap: 20px; width: 95%; max-width: 800px; justify-content: center; flex-wrap: wrap;
         }
         .shop-column {
-            background: #223; padding: 15px; border: 2px solid #558; width: 90%; max-width: 400px; border-radius: 10px;
+            background: #223; padding: 15px; border: 2px solid #558; width: 280px;
         }
         .shop-item {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px;
         }
         .buy-btn {
-            background: #222; border: 1px solid #FFFF00; color: #FFFF00; padding: 8px 15px; cursor: pointer; font-size: 12px; border-radius: 5px;
+            background: #222; border: 1px solid #FFFF00; color: #FFFF00; padding: 5px 10px; cursor: pointer; font-size: 10px;
         }
         .buy-btn.owned { background: #004400; border-color: #00FF00; color: white; cursor: default; }
+        .buy-btn.equipped { background: #00FF00; color: black; font-weight: bold; }
+        .buy-btn:disabled { opacity: 0.5; cursor: not-allowed; border-color: #555; color: #555; }
         
-        /* --- ЧІТ МЕНЮ --- */
+        .preview-area {
+            display: flex; flex-direction: column; align-items: center; margin-bottom: 15px;
+        }
+
+        /* ПРОМОКОДИ */
+        .promo-container {
+            margin-top: 20px; padding: 10px; border-top: 2px dashed #555; width: 100%; text-align: center;
+        }
+        #promo-input {
+            background: #111; border: 1px solid #0077FF; color: white; padding: 5px; width: 150px; font-family: inherit; text-transform: uppercase;
+        }
+        #promo-btn {
+            background: #0077FF; color: white; border: none; padding: 5px 10px; cursor: pointer; font-family: inherit; margin-left: 5px;
+        }
+
+        /* CHEAT UI */
         #santa-cheat-btn {
             display: none;
             position: absolute; top: 10px; right: 10px;
             width: 50px; height: 50px;
-            background: rgba(255,255,255,0.9); border-radius: 50%;
+            background: white; border-radius: 50%;
             text-align: center; line-height: 50px; font-size: 30px;
-            cursor: move; z-index: 1000;
+            cursor: pointer; z-index: 1000;
             box-shadow: 0 0 10px cyan;
             pointer-events: auto;
+            user-select: none;
         }
         #cheat-menu {
             display: none;
@@ -145,52 +160,53 @@
             display: flex; justify-content: space-between; align-items: center;
         }
 
-        /* --- МОБІЛЬНЕ КЕРУВАННЯ (ОНОВЛЕНЕ) --- */
+        /* МОБІЛЬНЕ КЕРУВАННЯ (ЗМІНЕНО РОЗМІРИ) */
         #mobile-controls {
             display: none; position: absolute; top: 0; left: 0;
             width: 100%; height: 100%; pointer-events: none; z-index: 10;
         }
-        /* Прозорі джойстики */
         .joystick-zone {
-            position: absolute; bottom: 40px;
-            width: 130px; height: 130px;
+            position: absolute; bottom: 30px; /* Трохи нижче */
+            width: 90px; height: 90px; /* Було 120px */
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%; pointer-events: auto;
-            border: 2px solid rgba(255, 255, 255, 0.1); /* Ледь помітний контур */
-            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 70%);
         }
-        #stick-left { left: 20px; }
+        #stick-left { left: 20px; } /* Трохи ближче до краю */
         #stick-right { right: 20px; }
+        
         .joystick-knob {
             position: absolute; top: 50%; left: 50%;
-            width: 50px; height: 50px;
-            background: rgba(255, 255, 255, 0.2); /* Напівпрозора кнопка */
-            border: 1px solid rgba(255,255,255,0.5);
+            width: 35px; height: 35px; /* Було 50px */
+            background: rgba(0, 119, 255, 0.5);
             border-radius: 50%;
             transform: translate(-50%, -50%); pointer-events: none;
         }
-        #stick-right .joystick-knob { background: rgba(255, 100, 100, 0.2); }
+        #stick-right .joystick-knob { background: rgba(255, 51, 51, 0.5); }
         
         #mobile-grenade-btn {
-            position: absolute; bottom: 180px; right: 30px;
-            width: 60px; height: 60px;
+            position: absolute; bottom: 100px; right: 140px; /* Змінив позицію */
+            width: 45px; height: 45px; /* Було 60px */
             background: rgba(255, 165, 0, 0.3); border: 2px solid #FFA500;
-            border-radius: 50%; color: #FFA500; font-size: 24px;
+            border-radius: 50%; color: #FFA500; font-size: 20px;
             display: flex; justify-content: center; align-items: center;
             pointer-events: auto; cursor: pointer;
         }
+        #mobile-grenade-btn:active { background: #FFA500; color: black; }
         
         #weapon-bar {
             position: absolute; bottom: 10px; left: 50%;
-            transform: translateX(-50%); display: flex; gap: 10px; pointer-events: auto;
-            background: rgba(0,0,0,0.5); padding: 5px; border-radius: 10px;
+            transform: translateX(-50%); display: flex; gap: 5px; pointer-events: auto;
         }
         .wpn-btn {
-            width: 50px; height: 50px; background: #333; border: 1px solid #666;
-            color: white; font-size: 10px; font-weight: bold;
+            width: 35px; height: 35px; /* Було 45px */
+            background: #333; border: 1px solid #666;
+            color: white; font-size: 8px; font-weight: bold;
             display: flex; justify-content: center; align-items: center;
             border-radius: 5px; font-family: inherit; cursor: pointer;
         }
         .wpn-btn.active { border-color: #0077FF; background: #004488; }
+        .wpn-btn.locked { opacity: 0.3; border-color: #333; cursor: not-allowed; }
         
         #levelup-notify {
             position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
@@ -225,25 +241,24 @@
     <div id="platform-screen" class="overlay" style="z-index: 30;">
         <h1>Tactical Shooter<br>❄️ New Year ❄️</h1>
         <h2>Оберіть керування</h2>
-        <button class="btn" style="width: 200px;" onclick="selectPlatform('PC')">💻 ПК (Клавіатура)</button>
-        <button class="btn" style="width: 200px;" onclick="selectPlatform('MOBILE')">📱 Телефон (Сенсор)</button>
+        <button class="btn" onclick="selectPlatform('PC')">💻 ПК (Клавіатура)</button>
+        <button class="btn" onclick="selectPlatform('MOBILE')">📱 Телефон (Сенсор)</button>
     </div>
 
-    <div id="shop-screen" class="overlay" style="z-index: 25;">
-        <h1 style="background: rgba(0,0,0,0.8); width:100%; padding:10px 0;">МАГАЗИН</h1>
-        <div style="color: yellow; margin-bottom: 10px; font-size: 20px;">💰: <span id="shop-coins">0</span></div>
+    <div id="shop-screen" class="overlay" style="z-index: 25; display: none;">
+        <h1>МАГАЗИН & СПОРЯДЖЕННЯ</h1>
+        <div style="color: yellow; margin-bottom: 10px; font-size: 20px;">💰: <span id="shop-coins">0</span> | РІВЕНЬ: <span id="shop-level">1</span></div>
         
-        <div class="shop-content">
-            <div class="shop-column" style="text-align: center;">
+        <div class="shop-container">
+            <div class="shop-column preview-area">
                 <h3>ЗОВНІШНІСТЬ</h3>
-                <canvas id="previewCanvas" width="150" height="150" style="border: 2px solid #555; background: #222; margin-bottom: 10px; border-radius: 50%;"></canvas>
-                <br>
-                <label>Колір:</label>
+                <canvas id="previewCanvas" width="150" height="150" style="border: 2px solid #555; background: #222; margin-bottom: 10px;"></canvas>
+                <label>Колір бійця:</label>
                 <input type="color" id="colorPicker" value="#0077FF" onchange="updatePreview()">
             </div>
 
             <div class="shop-column">
-                <h3>ОДЯГ</h3>
+                <h3>АКСЕСУАРИ</h3>
                 <div id="accessories-list"></div>
             </div>
 
@@ -251,23 +266,22 @@
                 <h3>ЗБРОЯ</h3>
                 <div id="weapons-list"></div>
                 
-                <div class="promo-container" style="margin-top: 15px; border-top: 1px dashed #555; padding-top: 10px;">
+                <div class="promo-container">
                     <div style="font-size:12px; color:#aaa; margin-bottom:5px;">ПРОМОКОД:</div>
-                    <input type="text" id="promo-input" placeholder="КОД" style="padding: 5px; width: 60%;">
-                    <button id="promo-btn" onclick="redeemCode()" style="padding: 5px;">OK</button>
+                    <input type="text" id="promo-input" placeholder="КОД ТУТ">
+                    <button id="promo-btn" onclick="redeemCode()">OK</button>
                 </div>
             </div>
-            
-            <button class="btn" onclick="closeShop()" style="width: 80%; background: #444; margin-top: 20px;">НАЗАД</button>
         </div>
+
+        <button class="btn" onclick="closeShop()" style="margin-top: 20px; width: 300px;">ЗБЕРЕГТИ І ВИЙТИ</button>
     </div>
 
     <div id="menu-overlay" class="overlay" style="display: none;">
-        <h1 id="menu-title">МІСІЇ</h1>
-        <div class="menu-stats" style="display: flex; gap: 10px;">
-            <span>РІВЕНЬ: <span id="menu-level">1</span></span>
-            <span>ВБИВСТВ: <span id="menu-kills">0</span></span>
-            <span>ГРОШІ: <span id="menu-coins">0</span></span>
+        <h1 id="menu-title">МЕНЮ МІСІЙ</h1>
+        <div class="menu-stats">
+            РІВЕНЬ: <span id="menu-level">1</span> | XP: <span id="menu-xp">0</span><br>
+            ВБИВСТВ: <span id="menu-kills">0</span> | МОНЕТ: <span id="menu-coins">0</span>
         </div>
         
         <div id="menu-buttons" class="mission-grid">
@@ -283,38 +297,39 @@
             <button class="btn special-btn" onclick="startMission(10)">Місія 10: ТЕМРЯВА<br><small>(Ліхтарик)</small></button>
             <button class="btn special-btn" onclick="startMission(11)">Місія 11: СНАЙПЕР<br><small>(Влучні вороги)</small></button>
         </div>
-        <button class="btn shop-btn" onclick="openShop()">🛒 МАГАЗИН</button>
+        <button class="btn shop-btn" onclick="openShop()">🛒 МАГАЗИН І ЗБРОЯ</button>
         <button id="end-game-btn" class="btn" onclick="showMainMenu()" style="display:none; background: #FF3333; margin-top: 20px;">В ГОЛОВНЕ МЕНЮ</button>
     </div>
 
     <div id="game-ui">
         <div id="top-bar">
-            <div class="hud-left">
-                <div id="mission-text">ЦІЛЬ: ...</div>
+            <div>
+                <div id="mission-text">Ціль: ...</div>
                 <div class="bar-container" id="health-bar">
                     <div id="health-fill"></div>
                 </div>
                 <div class="bar-container" id="xp-bar-container">
+                    <div id="level-text">LVL 1</div>
                     <div id="xp-fill"></div>
                 </div>
-                <div id="level-text">LVL 1</div>
+                <div class="stat-box" id="weapon-info" style="margin-top: 5px;">Зброя: ПІСТОЛЕТ</div>
             </div>
-            
-            <div class="hud-right">
-                <div class="stat-text" style="color: white;">Час: <span id="stats">0</span></div>
-                <div class="stat-text" style="color: #FFA500;">💣: <span id="grenade-counter">3</span></div>
-                <div class="stat-text" style="color: #FFFF00;">💰: <span id="coin-counter">0</span></div>
+            <div style="text-align: right;">
+                <div class="stat-box" id="stats">Час: 0.0</div>
+                <div class="stat-box" id="grenade-counter">💣: 3</div>
+                <div class="stat-box" id="coin-counter">💰: 0</div>
             </div>
         </div>
     </div>
     
-    <div id="levelup-notify">НОВИЙ РІВЕНЬ!</div>
+    <div id="levelup-notify">НОВИЙ РІВЕНЬ!<br><span style="font-size:20px; color:white;">HP Відновлено! +Bonus</span></div>
 
     <div id="mobile-controls">
         <div id="stick-left" class="joystick-zone"><div class="joystick-knob" id="knob-left"></div></div>
         <div id="stick-right" class="joystick-zone"><div class="joystick-knob" id="knob-right"></div></div>
         <div id="mobile-grenade-btn" onclick="throwGrenadeMobile()">💣</div>
-        <div id="weapon-bar"></div>
+        <div id="weapon-bar">
+            </div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
@@ -330,7 +345,7 @@
         window.addEventListener('resize', resize);
         resize();
 
-        // --- СТРУКТУРА ДАНИХ ---
+        // --- СИСТЕМА ЗБЕРЕЖЕННЯ І ПРОГРЕСІЇ ---
         let playerStats = {
             totalKills: 0,
             coins: 0,
@@ -345,6 +360,7 @@
             cheatsUnlocked: false 
         };
         
+        // --- CHEAT SYSTEM ---
         let activeCheats = {
             aim: false,
             wh: false,
@@ -352,25 +368,22 @@
             wallbang: false
         };
 
-        // --- ФУНКЦІЇ ЧІТІВ ---
         function toggleCheatMenu() {
             let menu = document.getElementById('cheat-menu');
             let btn = document.getElementById('santa-cheat-btn');
             
+            // Якщо меню відкривається, ставимо його біля кнопки
             if (menu.style.display !== 'block') {
                 const rect = btn.getBoundingClientRect();
                 menu.style.top = (rect.bottom + 5) + 'px';
+                // Вирівнюємо меню по центру кнопки або щоб не вилазило
                 let leftPos = rect.left - (menu.offsetWidth - rect.width)/2;
                 if(leftPos + 200 > window.innerWidth) leftPos = window.innerWidth - 210;
-                if(leftPos < 0) leftPos = 10;
                 menu.style.left = leftPos + 'px';
+                menu.style.right = 'auto'; // скидаємо right, бо позиціонуємо через left
             }
             
-            if (menu.style.display === 'block') {
-                menu.style.display = 'none';
-            } else {
-                menu.style.display = 'block';
-            }
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         }
 
         function toggleCheat(type) {
@@ -380,69 +393,82 @@
             if (type === 'wallbang') activeCheats.wallbang = document.getElementById('chk-wallbang').checked;
         }
 
-        // --- ЛОГІКА ПЕРЕТЯГУВАННЯ САНТИ (ДЕТАЛЬНА) ---
+        // --- DRAGGABLE SANTA ---
         const santaBtn = document.getElementById('santa-cheat-btn');
         let dragObj = null;
         let dragOffsetX = 0;
         let dragOffsetY = 0;
         let isDraggingCheat = false;
 
-        function startDrag(clientX, clientY) {
+        santaBtn.addEventListener('mousedown', (e) => {
+            if(e.button !== 0) return; // Only LMB
             isDraggingCheat = false;
             dragObj = santaBtn;
             const rect = santaBtn.getBoundingClientRect();
-            dragOffsetX = clientX - rect.left;
-            dragOffsetY = clientY - rect.top;
-        }
+            dragOffsetX = e.clientX - rect.left;
+            dragOffsetY = e.clientY - rect.top;
+        });
 
-        function moveDrag(clientX, clientY) {
+        // Також додаємо Touch події для надійності
+        santaBtn.addEventListener('touchstart', (e) => {
+            isDraggingCheat = false;
+            dragObj = santaBtn;
+            const rect = santaBtn.getBoundingClientRect();
+            dragOffsetX = e.touches[0].clientX - rect.left;
+            dragOffsetY = e.touches[0].clientY - rect.top;
+            e.preventDefault(); 
+        }, {passive: false});
+
+        window.addEventListener('mousemove', (e) => {
             if (dragObj) {
                 isDraggingCheat = true;
-                let newLeft = clientX - dragOffsetX;
-                let newTop = clientY - dragOffsetY;
+                let newLeft = e.clientX - dragOffsetX;
+                let newTop = e.clientY - dragOffsetY;
+                
+                // Межі екрану
+                newLeft = Math.max(0, Math.min(window.innerWidth - dragObj.offsetWidth, newLeft));
+                newTop = Math.max(0, Math.min(window.innerHeight - dragObj.offsetHeight, newTop));
+
+                dragObj.style.left = newLeft + 'px';
+                dragObj.style.top = newTop + 'px';
+                dragObj.style.right = 'auto'; 
+                
+                // Ховаємо меню при перетягуванні
+                document.getElementById('cheat-menu').style.display = 'none';
+            }
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (dragObj) {
+                isDraggingCheat = true;
+                let newLeft = e.touches[0].clientX - dragOffsetX;
+                let newTop = e.touches[0].clientY - dragOffsetY;
                 
                 newLeft = Math.max(0, Math.min(window.innerWidth - dragObj.offsetWidth, newLeft));
                 newTop = Math.max(0, Math.min(window.innerHeight - dragObj.offsetHeight, newTop));
 
                 dragObj.style.left = newLeft + 'px';
                 dragObj.style.top = newTop + 'px';
-                
+                dragObj.style.right = 'auto';
                 document.getElementById('cheat-menu').style.display = 'none';
             }
-        }
-
-        santaBtn.addEventListener('mousedown', function(e) {
-            if(e.button === 0) startDrag(e.clientX, e.clientY);
-        });
-        
-        santaBtn.addEventListener('touchstart', function(e) {
-            startDrag(e.touches[0].clientX, e.touches[0].clientY);
-            e.preventDefault(); 
-        }, {passive: false});
-
-        window.addEventListener('mousemove', function(e) {
-            moveDrag(e.clientX, e.clientY);
         });
 
-        window.addEventListener('touchmove', function(e) {
-            moveDrag(e.touches[0].clientX, e.touches[0].clientY);
-        });
-
-        window.addEventListener('mouseup', function() {
+        window.addEventListener('mouseup', () => {
             if (dragObj && !isDraggingCheat) {
                 toggleCheatMenu();
             }
             dragObj = null;
         });
 
-        window.addEventListener('touchend', function() {
+        window.addEventListener('touchend', (e) => {
              if (dragObj && !isDraggingCheat) {
                 toggleCheatMenu();
             }
             dragObj = null;
         });
 
-        // --- ЛОГІКА ПРОГРЕСУ ---
+        // -----------------------
 
         function getNextLevelXp(lvl) {
             return Math.floor(100 * Math.pow(1.2, lvl - 1));
@@ -474,7 +500,7 @@
             const el = document.getElementById('levelup-notify');
             el.style.opacity = 1;
             el.style.top = '40%';
-            setTimeout(function() { el.style.opacity = 0; el.style.top = '30%'; }, 2000);
+            setTimeout(() => { el.style.opacity = 0; el.style.top = '30%'; }, 2000);
         }
 
         function loadGame() {
@@ -498,9 +524,10 @@
             document.getElementById('menu-kills').innerText = playerStats.totalKills;
             document.getElementById('menu-coins').innerText = playerStats.coins;
             document.getElementById('menu-level').innerText = playerStats.level;
+            document.getElementById('menu-xp').innerText = `${Math.floor(playerStats.xp)}/${playerStats.nextLevelXp}`;
         }
 
-        // --- МАГАЗИН ---
+        // --- ДАНІ МАГАЗИНУ ---
         const shopItems = {
             outfits: [
                 { id: 'none', name: 'Без екіпірування', price: 0 },
@@ -514,121 +541,11 @@
             ]
         };
 
-        const previewCanvas = document.getElementById('previewCanvas');
-        const pCtx = previewCanvas.getContext('2d');
-
-        function openShop() {
-            document.getElementById('menu-overlay').style.display = 'none';
-            document.getElementById('shop-screen').style.display = 'block';
-            document.getElementById('shop-coins').innerText = playerStats.coins;
-            renderShopItems();
-            updatePreview();
-        }
-
-        function closeShop() {
-            saveGame();
-            document.getElementById('shop-screen').style.display = 'none';
-            document.getElementById('menu-overlay').style.display = 'flex';
-        }
-
-        function renderShopItems() {
-            const accList = document.getElementById('accessories-list');
-            accList.innerHTML = '';
-            shopItems.outfits.forEach(function(item) {
-                let div = document.createElement('div');
-                div.className = 'shop-item';
-                let owned = playerStats.unlockedOutfits.includes(item.id);
-                let equipped = playerStats.currentOutfit === item.id;
-                
-                let priceText = item.price === 0 ? "БЕЗКОШТОВНО" : `${item.price}$`;
-                let btnText = owned ? (equipped ? 'ОДЯГНЕНО' : 'ОДЯГТИ') : `КУПИТИ (${priceText})`;
-                let btnClass = equipped ? 'buy-btn equipped' : (owned ? 'buy-btn owned' : 'buy-btn');
-                
-                div.innerHTML = `<span>${item.name}</span> <button class="${btnClass}" onclick="handleShopAction('outfit', '${item.id}', ${item.price})">${btnText}</button>`;
-                accList.appendChild(div);
-            });
-
-            const wpnList = document.getElementById('weapons-list');
-            wpnList.innerHTML = '';
-            shopItems.weapons.forEach(function(item) {
-                let div = document.createElement('div');
-                div.className = 'shop-item';
-                let owned = playerStats.unlockedWeapons.includes(item.id);
-                let lockedLevel = item.levelReq && playerStats.level < item.levelReq;
-                
-                let btnText = owned ? 'КУПЛЕНО' : (lockedLevel ? `LVL ${item.levelReq}+` : `КУПИТИ (${item.price}$)`);
-                let btnClass = owned ? 'buy-btn owned' : 'buy-btn';
-                let disabled = owned || lockedLevel;
-
-                div.innerHTML = `<span>${item.name}</span> <button class="${btnClass}" onclick="handleShopAction('weapon', '${item.id}', ${item.price})" ${disabled ? 'disabled' : ''}>${btnText}</button>`;
-                wpnList.appendChild(div);
-            });
-        }
-
-        function handleShopAction(type, id, price) {
-            if (type === 'outfit') {
-                if (playerStats.unlockedOutfits.includes(id)) {
-                    playerStats.currentOutfit = id;
-                } else {
-                    if (playerStats.coins >= price) {
-                        playerStats.coins -= price;
-                        playerStats.unlockedOutfits.push(id);
-                        playerStats.currentOutfit = id;
-                    } else alert("Недостатньо грошей!");
-                }
-            } else if (type === 'weapon') {
-                if (!playerStats.unlockedWeapons.includes(id)) {
-                    if (playerStats.coins >= price) {
-                        playerStats.coins -= price;
-                        playerStats.unlockedWeapons.push(id);
-                    } else alert("Недостатньо грошей!");
-                }
-            }
-            updatePreview();
-            renderShopItems();
-            document.getElementById('shop-coins').innerText = playerStats.coins;
-        }
-
-        function updatePreview() {
-            let color = document.getElementById('colorPicker').value;
-            playerStats.color = color;
-
-            pCtx.clearRect(0,0,150,150);
-            pCtx.save();
-            pCtx.translate(75, 75);
-            pCtx.scale(3, 3);
-            
-            pCtx.beginPath(); pCtx.arc(0, 0, 15, 0, Math.PI * 2);
-            pCtx.fillStyle = color; pCtx.fill();
-            pCtx.strokeStyle = '#000'; pCtx.lineWidth = 1; pCtx.stroke();
-
-            if (playerStats.currentOutfit === 'santa_hat') {
-                pCtx.fillStyle = '#D40000';
-                pCtx.beginPath();
-                pCtx.moveTo(-15, -5); pCtx.lineTo(15, -5); pCtx.lineTo(0, -28); 
-                pCtx.fill();
-                pCtx.fillStyle = '#FFFFFF'; pCtx.fillRect(-16, -5, 32, 6); 
-                pCtx.beginPath(); pCtx.arc(0, -28, 5, 0, Math.PI*2); pCtx.fill();
-            }
-            else if (playerStats.currentOutfit === 'helmet') {
-                pCtx.fillStyle = '#334400'; pCtx.beginPath(); pCtx.arc(0, 0, 16, Math.PI, 0); pCtx.fill();
-                pCtx.fillStyle = '#223300'; pCtx.fillRect(-15, -5, 30, 5);
-            }
-            else if (playerStats.currentOutfit === 'vest') {
-                 pCtx.fillStyle = '#2E3B22'; pCtx.fillRect(-14, -14, 28, 28);
-                 pCtx.fillStyle = '#4A5D3A'; pCtx.fillRect(-10, 2, 8, 10); pCtx.fillRect(2, 2, 8, 10);
-            }
-            else if (playerStats.currentOutfit === 'cap') {
-                pCtx.fillStyle = '#C2B280'; pCtx.beginPath(); pCtx.arc(0, 0, 15, Math.PI * 0.8, Math.PI * 3.2); pCtx.fill();
-                pCtx.fillStyle = '#A09165'; pCtx.fillRect(13, -13, 14, 26);
-            }
-            pCtx.fillStyle = '#000'; pCtx.fillRect(10, -3, 15, 6);
-            pCtx.restore();
-        }
-
+        // --- ЛОГІКА ПРОМОКОДІВ ---
         function redeemCode() {
             const input = document.getElementById('promo-input');
             const code = input.value.trim().toUpperCase(); 
+            
             const secretCode = "FHJWIDFNN2137217^$&*@JFUHIWHAAHSDN2273871287873201JDFJHWOMF%(#&$(*@&";
 
             if (playerStats.redeemedCodes.includes(code)) {
@@ -672,17 +589,19 @@
                 saveGame();
                 updateMenuStats();
                 document.getElementById('shop-coins').innerText = playerStats.coins;
+                document.getElementById('shop-level').innerText = playerStats.level;
                 renderShopItems();
                 alert(msg);
                 input.value = "";
             }
         }
 
-        // --- ІГРОВІ ЗМІННІ ---
+        // --- КОНСТАНТИ ---
         const PLAYER_SPEED = 4.5;
         const BULLET_SPEED = 14;
         const ENEMY_SPEED = 2.5; 
         
+        // --- СТАН ---
         let controlMode = 'PC';
         let gameState = 'PLATFORM_SELECT'; 
         let currentMissionId = 0;
@@ -706,6 +625,7 @@
         let snowflakes = []; 
         let player;
 
+        // Ввід
         let keys = {};
         let mouse = { x: 0, y: 0, down: false };
         let joystickLeft = { x: 0, y: 0, active: false, id: null };
@@ -721,7 +641,7 @@
             });
         }
 
-        // --- КЛАСИ (РОЗГОРНУТІ) ---
+        // --- КЛАСИ ---
         class DropItem {
             constructor(x, y, type) {
                 this.x = x; this.y = y; this.type = type; 
@@ -763,7 +683,7 @@
             explode() {
                 createExplosion(this.x, this.y);
                 screenShake = 15;
-                enemies.forEach(function(en) {
+                enemies.forEach(en => {
                     let d = Math.hypot(en.x - this.x, en.y - this.y);
                     if (d < 120) { en.takeDamage(150); if (en.hp <= 0) grenadesKilled++; }
                 });
@@ -909,7 +829,7 @@
                 
                 let dx = 0, dy = 0;
 
-                // --- ЧІТИ ---
+                // --- CHEAT LOGIC ---
                 // 1. AIMBOT
                 if (activeCheats.aim && enemies.length > 0) {
                     let closest = null;
@@ -928,7 +848,7 @@
                     this.x = drops[0].x;
                     this.y = drops[0].y;
                 }
-                // ------------
+                // --------------------
 
                 if (controlMode === 'PC') {
                     if (keys['Digit1']) this.trySetWeapon('pistol');
@@ -1150,7 +1070,7 @@
             }
             explode() {
                  createExplosion(this.x, this.y);
-                 enemies.forEach(function(en) {
+                 enemies.forEach(en => {
                     if (Math.hypot(en.x - this.x, en.y - this.y) < 100) {
                         en.takeDamage(10000); 
                     }
@@ -1166,6 +1086,120 @@
             particles.push({x, y, color: 'rgba(255,255,255,0.8)', vx:0, vy:0, life:15, radius: 100, isShockwave: true});
         }
 
+        // --- ЛОГІКА МАГАЗИНУ ---
+        const previewCanvas = document.getElementById('previewCanvas');
+        const pCtx = previewCanvas.getContext('2d');
+
+        function openShop() {
+            document.getElementById('menu-overlay').style.display = 'none';
+            document.getElementById('shop-screen').style.display = 'flex';
+            document.getElementById('shop-coins').innerText = playerStats.coins;
+            document.getElementById('shop-level').innerText = playerStats.level;
+            renderShopItems();
+            updatePreview();
+        }
+
+        function closeShop() {
+            saveGame();
+            document.getElementById('shop-screen').style.display = 'none';
+            document.getElementById('menu-overlay').style.display = 'flex';
+        }
+
+        function renderShopItems() {
+            const accList = document.getElementById('accessories-list');
+            accList.innerHTML = '';
+            shopItems.outfits.forEach(item => {
+                let div = document.createElement('div');
+                div.className = 'shop-item';
+                let owned = playerStats.unlockedOutfits.includes(item.id);
+                let equipped = playerStats.currentOutfit === item.id;
+                
+                let priceText = item.price === 0 ? "БЕЗКОШТОВНО" : `${item.price}$`;
+                let btnText = owned ? (equipped ? 'ОДЯГНЕНО' : 'ОДЯГТИ') : `КУПИТИ (${priceText})`;
+                let btnClass = equipped ? 'buy-btn equipped' : (owned ? 'buy-btn owned' : 'buy-btn');
+                
+                div.innerHTML = `<span>${item.name}</span> <button class="${btnClass}" onclick="handleShopAction('outfit', '${item.id}', ${item.price})">${btnText}</button>`;
+                accList.appendChild(div);
+            });
+
+            const wpnList = document.getElementById('weapons-list');
+            wpnList.innerHTML = '';
+            shopItems.weapons.forEach(item => {
+                let div = document.createElement('div');
+                div.className = 'shop-item';
+                let owned = playerStats.unlockedWeapons.includes(item.id);
+                let lockedLevel = item.levelReq && playerStats.level < item.levelReq;
+                
+                let btnText = owned ? 'КУПЛЕНО' : (lockedLevel ? `LVL ${item.levelReq}+` : `КУПИТИ (${item.price}$)`);
+                let btnClass = owned ? 'buy-btn owned' : 'buy-btn';
+                let disabled = owned || lockedLevel;
+
+                div.innerHTML = `<span>${item.name}</span> <button class="${btnClass}" onclick="handleShopAction('weapon', '${item.id}', ${item.price})" ${disabled ? 'disabled' : ''}>${btnText}</button>`;
+                wpnList.appendChild(div);
+            });
+        }
+
+        function handleShopAction(type, id, price) {
+            if (type === 'outfit') {
+                if (playerStats.unlockedOutfits.includes(id)) {
+                    playerStats.currentOutfit = id;
+                } else {
+                    if (playerStats.coins >= price) {
+                        playerStats.coins -= price;
+                        playerStats.unlockedOutfits.push(id);
+                        playerStats.currentOutfit = id;
+                    } else alert("Недостатньо грошей!");
+                }
+            } else if (type === 'weapon') {
+                if (!playerStats.unlockedWeapons.includes(id)) {
+                    if (playerStats.coins >= price) {
+                        playerStats.coins -= price;
+                        playerStats.unlockedWeapons.push(id);
+                    } else alert("Недостатньо грошей!");
+                }
+            }
+            updatePreview();
+            renderShopItems();
+            document.getElementById('shop-coins').innerText = playerStats.coins;
+        }
+
+        function updatePreview() {
+            let color = document.getElementById('colorPicker').value;
+            playerStats.color = color;
+
+            pCtx.clearRect(0,0,150,150);
+            pCtx.save();
+            pCtx.translate(75, 75);
+            pCtx.scale(3, 3);
+            
+            pCtx.beginPath(); pCtx.arc(0, 0, 15, 0, Math.PI * 2);
+            pCtx.fillStyle = color; pCtx.fill();
+            pCtx.strokeStyle = '#000'; pCtx.lineWidth = 1; pCtx.stroke();
+
+            if (playerStats.currentOutfit === 'santa_hat') {
+                pCtx.fillStyle = '#D40000';
+                pCtx.beginPath();
+                pCtx.moveTo(-15, -5); pCtx.lineTo(15, -5); pCtx.lineTo(0, -28); 
+                pCtx.fill();
+                pCtx.fillStyle = '#FFFFFF'; pCtx.fillRect(-16, -5, 32, 6); 
+                pCtx.beginPath(); pCtx.arc(0, -28, 5, 0, Math.PI*2); pCtx.fill();
+            }
+            else if (playerStats.currentOutfit === 'helmet') {
+                pCtx.fillStyle = '#334400'; pCtx.beginPath(); pCtx.arc(0, 0, 16, Math.PI, 0); pCtx.fill();
+                pCtx.fillStyle = '#223300'; pCtx.fillRect(-15, -5, 30, 5);
+            }
+            else if (playerStats.currentOutfit === 'vest') {
+                 pCtx.fillStyle = '#2E3B22'; pCtx.fillRect(-14, -14, 28, 28);
+                 pCtx.fillStyle = '#4A5D3A'; pCtx.fillRect(-10, 2, 8, 10); pCtx.fillRect(2, 2, 8, 10);
+            }
+            else if (playerStats.currentOutfit === 'cap') {
+                pCtx.fillStyle = '#C2B280'; pCtx.beginPath(); pCtx.arc(0, 0, 15, Math.PI * 0.8, Math.PI * 3.2); pCtx.fill();
+                pCtx.fillStyle = '#A09165'; pCtx.fillRect(13, -13, 14, 26);
+            }
+            pCtx.fillStyle = '#000'; pCtx.fillRect(10, -3, 15, 6);
+            pCtx.restore();
+        }
+
         // --- КЕРУВАННЯ СИСТЕМОЮ ---
         function selectPlatform(mode) {
             controlMode = mode;
@@ -1176,8 +1210,10 @@
             
             if (mode === 'MOBILE') {
                 document.getElementById('mobile-controls').style.display = 'block';
+                document.getElementById('weapon-info').style.display = 'none';
             } else {
                 document.getElementById('mobile-controls').style.display = 'none';
+                document.getElementById('weapon-info').style.display = 'block';
             }
         }
 
@@ -1188,20 +1224,20 @@
 
         function updateUI() {
             if (player) {
-                // Оновлення для ПК/Mobile
-                document.getElementById('grenade-counter').innerText = player.grenades;
-                document.getElementById('coin-counter').innerText = playerStats.coins;
+                if (controlMode === 'PC') document.getElementById('weapon-info').innerText = "Зброя: " + weaponNames[player.weapon];
+                document.getElementById('grenade-counter').innerText = "💣: " + player.grenades;
+                document.getElementById('coin-counter').innerText = "💰: " + playerStats.coins;
                 
                 let xpPerc = (playerStats.xp / playerStats.nextLevelXp) * 100;
                 document.getElementById('xp-fill').style.width = xpPerc + '%';
-                document.getElementById('health-fill').style.width = Math.max(0, player.hp) + '%';
                 document.getElementById('level-text').innerText = "LVL " + playerStats.level;
 
                 if (controlMode === 'MOBILE') {
-                      document.querySelectorAll('.wpn-btn').forEach(function(btn) {
+                      document.querySelectorAll('.wpn-btn').forEach(btn => {
                           let wpn = btn.getAttribute('data-wpn');
                           let active = player.weapon === wpn;
-                          btn.className = 'wpn-btn' + (active ? ' active' : '');
+                          let locked = !playerStats.unlockedWeapons.includes(wpn) || (wpn==='minigun' && playerStats.level < 5);
+                          btn.className = 'wpn-btn' + (active ? ' active' : '') + (locked ? ' locked' : '');
                       });
                 }
             }
@@ -1210,13 +1246,9 @@
         function setupMobileWeapons() {
             const bar = document.getElementById('weapon-bar');
             bar.innerHTML = '';
-            weaponKeys.forEach(function(key) {
+            weaponKeys.forEach(key => {
                 let isSecret = (key === 'snowball');
                 if (isSecret && !playerStats.unlockedWeapons.includes(key)) return;
-                
-                // Перевірка на розблокування
-                if (!playerStats.unlockedWeapons.includes(key)) return;
-                if (key === 'minigun' && playerStats.level < 5) return;
 
                 let div = document.createElement('div');
                 div.className = 'wpn-btn';
@@ -1315,7 +1347,7 @@
             else { title.innerText = "ПОРАЗКА"; title.style.color = "red"; }
         }
 
-        function spawnEnemyEdge(forceBoss) {
+        function spawnEnemyEdge(forceBoss = false) {
             let side = Math.floor(Math.random() * 4);
             let x, y;
             switch(side) {
@@ -1336,7 +1368,7 @@
             if (gameState !== 'PLAYING') return;
             gameTime += 1/60;
             
-            snowflakes.forEach(function(f) {
+            snowflakes.forEach(f => {
                 f.y += f.s;
                 if(f.y > canvas.height) f.y = -10;
             });
@@ -1349,8 +1381,8 @@
             if (Math.floor(gameTime * 60) % spawnRate === 0) spawnEnemyEdge();
 
             player.update();
-            
-            // Умови перемоги
+            document.getElementById('health-fill').style.width = Math.max(0, player.hp) + '%';
+
             if (currentMissionId === 1 && gameTime >= 20) gameOver(true);
             if (currentMissionId === 2 && enemiesKilled >= 5) gameOver(true);
             if (currentMissionId === 3) { if (bossSpawned && !enemies.some(e => e.type === 'boss')) gameOver(true); }
@@ -1371,10 +1403,10 @@
             } else if (currentMissionId === 7) {
                 document.getElementById('stats').innerText = `Бомбами: ${grenadesKilled}/15`;
             } else {
-                 document.getElementById('stats').innerText = `${gameTime.toFixed(0)}`;
+                 document.getElementById('stats').innerText = `Час: ${gameTime.toFixed(0)}`;
             }
 
-            drops.forEach(function(m, i) {
+            drops.forEach((m, i) => {
                 if (Math.hypot(m.x - player.x, m.y - player.y) < player.radius + m.size) {
                     if (m.type === 'medkit') { 
                         player.hp = Math.min(player.maxHp, player.hp + 25); 
@@ -1392,21 +1424,21 @@
                 }
             });
 
-            enemies.forEach(function(en, i) {
+            enemies.forEach((en, i) => {
                 en.update();
                 if (en.dead) enemies.splice(i, 1);
             });
 
-            thrownGrenades.forEach(function(g, i) {
+            thrownGrenades.forEach((g, i) => {
                 g.update();
                 if (g.dead) thrownGrenades.splice(i, 1);
             });
 
-            bullets.forEach(function(b, i) {
+            bullets.forEach((b, i) => {
                 b.update();
                 let hit = false;
                 if (!b.isEnemy) {
-                    enemies.forEach(function(en) {
+                    enemies.forEach(en => {
                         if (!hit && Math.hypot(b.x - en.x, b.y - en.y) < en.radius + b.radius) {
                             en.takeDamage(b.dmg); 
                             if (b.specialType === 'snowball') {
@@ -1426,7 +1458,7 @@
                 if (hit || b.dead) bullets.splice(i, 1);
             });
             
-            particles.forEach(function(p, i) { 
+            particles.forEach((p, i) => { 
                 if (p.isShockwave) {
                     p.radius += 5; p.life--; 
                 } else { p.x += p.vx; p.y += p.vy; p.life--; }
@@ -1447,7 +1479,7 @@
             ctx.fillStyle = '#1a1a2e'; ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             ctx.fillStyle = 'rgba(240, 240, 255, 0.1)';
-            decorations.forEach(function(d) {
+            decorations.forEach(d => {
                 ctx.beginPath(); ctx.arc(d.x, d.y, d.size, 0, Math.PI*2); ctx.fill();
             });
 
@@ -1457,34 +1489,45 @@
                 ctx.strokeStyle = '#0077FF'; ctx.lineWidth = 2; ctx.stroke();
             }
 
-            obstacles.forEach(function(o) { o.draw(); });
-            drops.forEach(function(m) { m.draw(); });
-            thrownGrenades.forEach(function(g) { g.draw(); });
-            particles.forEach(function(p) { 
+            obstacles.forEach(o => o.draw());
+            drops.forEach(m => m.draw());
+            thrownGrenades.forEach(g => g.draw());
+            particles.forEach(p => { 
                 if (p.isShockwave) {
                     ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2);
                     ctx.fillStyle = `rgba(255, 255, 255, ${p.life/20})`; ctx.fill();
                 } else { ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 3, 3); }
             });
-            bullets.forEach(function(b) { b.draw(); });
-            enemies.forEach(function(e) { e.draw(); });
+            bullets.forEach(b => b.draw());
+            enemies.forEach(e => e.draw());
 
             // --- WH (ESP) DRAWING ---
             if (activeCheats.wh) {
-                enemies.forEach(function(e) {
+                enemies.forEach(e => {
                     ctx.save();
-                    ctx.beginPath(); ctx.moveTo(player.x, player.y); ctx.lineTo(e.x, e.y);
-                    ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)'; ctx.lineWidth = 2; ctx.stroke();
-                    ctx.beginPath(); ctx.rect(e.x - e.radius - 5, e.y - e.radius - 5, e.radius*2 + 10, e.radius*2 + 10);
-                    ctx.strokeStyle = 'red'; ctx.lineWidth = 2; ctx.stroke();
+                    // Line to enemy
+                    ctx.beginPath();
+                    ctx.moveTo(player.x, player.y);
+                    ctx.lineTo(e.x, e.y);
+                    ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // Box around enemy
+                    ctx.beginPath();
+                    ctx.rect(e.x - e.radius - 5, e.y - e.radius - 5, e.radius*2 + 10, e.radius*2 + 10);
+                    ctx.strokeStyle = 'red';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
                     ctx.restore();
                 });
             }
+            // ------------------------
 
             if (player.hp > 0) player.draw();
 
             ctx.fillStyle = 'rgba(255,255,255,0.6)';
-            snowflakes.forEach(function(f) {
+            snowflakes.forEach(f => {
                 ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2); ctx.fill();
             });
 
@@ -1506,75 +1549,62 @@
         }
 
         // --- INPUT ---
-        window.addEventListener('keydown', function(e) { if(controlMode==='PC') keys[e.code] = true; });
-        window.addEventListener('keyup', function(e) { if(controlMode==='PC') keys[e.code] = false; });
-        window.addEventListener('mousemove', function(e) { if(controlMode==='PC') { mouse.x = e.clientX; mouse.y = e.clientY; }});
-        window.addEventListener('mousedown', function() { if(controlMode==='PC') mouse.down = true; });
-        window.addEventListener('mouseup', function() { if(controlMode==='PC') mouse.down = false; });
+        window.addEventListener('keydown', e => { if(controlMode==='PC') keys[e.code] = true; });
+        window.addEventListener('keyup', e => { if(controlMode==='PC') keys[e.code] = false; });
+        window.addEventListener('mousemove', e => { if(controlMode==='PC') { mouse.x = e.clientX; mouse.y = e.clientY; }});
+        window.addEventListener('mousedown', () => { if(controlMode==='PC') mouse.down = true; });
+        window.addEventListener('mouseup', () => { if(controlMode==='PC') mouse.down = false; });
 
-        // --- ДЖОЙСТИК (ОНОВЛЕНИЙ МУЛЬТИТАЧ) ---
-        function handleTouch(e, end) {
-            if(controlMode !== 'MOBILE' || gameState !== 'PLAYING') return;
-            
-            // Логіка скидання
-            let lActive = false;
-            let rActive = false;
-            
-            for(let i=0; i<e.touches.length; i++) {
-                let t = e.touches[i];
-                let stickL = document.getElementById('stick-left').getBoundingClientRect();
-                let stickR = document.getElementById('stick-right').getBoundingClientRect();
-                
-                // Перевірка лівого
-                let cxL = stickL.left + stickL.width/2; 
-                let cyL = stickL.top + stickL.height/2;
-                if(Math.hypot(t.clientX - cxL, t.clientY - cyL) < 100) {
-                     processStick(t, stickL, joystickLeft, 'knob-left');
-                     lActive = true;
-                }
-
-                // Перевірка правого
-                let cxR = stickR.left + stickR.width/2; 
-                let cyR = stickR.top + stickR.height/2;
-                if(Math.hypot(t.clientX - cxR, t.clientY - cyR) < 100) {
-                     processStick(t, stickR, joystickRight, 'knob-right');
-                     rActive = true;
-                }
-            }
-            
-            if(!lActive && end) resetJoystick(true);
-            if(!rActive && end) resetJoystick(false);
+        function handleJoystick(touch, isLeft) {
+            const zone = isLeft ? document.getElementById('stick-left') : document.getElementById('stick-right');
+            const rect = zone.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            let dx = touch.clientX - centerX;
+            let dy = touch.clientY - centerY;
+            const maxDist = rect.width / 2;
+            const dist = Math.min(Math.hypot(dx, dy), maxDist);
+            const angle = Math.atan2(dy, dx);
+            const inputX = Math.cos(angle) * (dist / maxDist);
+            const inputY = Math.sin(angle) * (dist / maxDist);
+            const knob = isLeft ? document.getElementById('knob-left') : document.getElementById('knob-right');
+            knob.style.transform = `translate(-50%, -50%) translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
+            if (isLeft) { joystickLeft.x = inputX; joystickLeft.y = inputY; joystickLeft.active = true; joystickLeft.id = touch.identifier; }
+            else { joystickRight.x = inputX; joystickRight.y = inputY; joystickRight.active = true; joystickRight.id = touch.identifier; }
         }
-
-        function processStick(touch, rect, stickObj, knobId) {
-            let cx = rect.left + rect.width / 2;
-            let cy = rect.top + rect.height / 2;
-            let dx = touch.clientX - cx;
-            let dy = touch.clientY - cy;
-            let maxDist = rect.width / 2;
-            let dist = Math.min(Math.hypot(dx, dy), maxDist);
-            let angle = Math.atan2(dy, dx);
-            
-            stickObj.x = Math.cos(angle) * (dist / maxDist);
-            stickObj.y = Math.sin(angle) * (dist / maxDist);
-            stickObj.active = true;
-            
-            document.getElementById(knobId).style.transform = `translate(-50%, -50%) translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
-        }
-
         function resetJoystick(isLeft) {
-            if (isLeft) { 
-                joystickLeft.active = false; joystickLeft.x = 0; joystickLeft.y = 0; 
-                document.getElementById('knob-left').style.transform = `translate(-50%, -50%)`; 
-            } else { 
-                joystickRight.active = false; joystickRight.x = 0; joystickRight.y = 0; 
-                document.getElementById('knob-right').style.transform = `translate(-50%, -50%)`; 
-            }
+            if (isLeft) { joystickLeft.active = false; joystickLeft.x = 0; joystickLeft.y = 0; document.getElementById('knob-left').style.transform = `translate(-50%, -50%)`; }
+            else { joystickRight.active = false; joystickRight.x = 0; joystickRight.y = 0; document.getElementById('knob-right').style.transform = `translate(-50%, -50%)`; }
         }
 
-        document.addEventListener('touchstart', function(e) { handleTouch(e, false); }, {passive: false});
-        document.addEventListener('touchmove', function(e) { e.preventDefault(); handleTouch(e, false); }, {passive: false});
-        document.addEventListener('touchend', function(e) { handleTouch(e, true); });
+        document.addEventListener('touchstart', e => {
+            if (controlMode !== 'MOBILE' || gameState !== 'PLAYING') return;
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                let t = e.changedTouches[i];
+                if (t.target.id === 'mobile-grenade-btn' || t.target.classList.contains('wpn-btn')) continue;
+                let zL = document.getElementById('stick-left').getBoundingClientRect();
+                if (t.clientX >= zL.left && t.clientX <= zL.right && t.clientY >= zL.top && t.clientY <= zL.bottom) handleJoystick(t, true);
+                let zR = document.getElementById('stick-right').getBoundingClientRect();
+                if (t.clientX >= zR.left && t.clientX <= zR.right && t.clientY >= zR.top && t.clientY <= zR.bottom) handleJoystick(t, false);
+            }
+        }, {passive: false});
+        document.addEventListener('touchmove', e => {
+            if (controlMode !== 'MOBILE' || gameState !== 'PLAYING') return;
+            e.preventDefault();
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                let t = e.changedTouches[i];
+                if (t.identifier === joystickLeft.id) handleJoystick(t, true);
+                if (t.identifier === joystickRight.id) handleJoystick(t, false);
+            }
+        }, {passive: false});
+        document.addEventListener('touchend', e => {
+            if (controlMode !== 'MOBILE') return;
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                let t = e.changedTouches[i];
+                if (t.identifier === joystickLeft.id) resetJoystick(true);
+                if (t.identifier === joystickRight.id) resetJoystick(false);
+            }
+        });
 
         loop();
     </script>
