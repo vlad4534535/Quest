@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tactical Shooter Cross-Platform</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #222;
+            font-family: 'Courier New', Courier, monospace;
+            color: white;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+        canvas { display: block; }
+        
+        /* UI */
+        #game-ui {
+            display: none;
+            position: absolute;
+            top: 10px; left: 10px;
+            pointer-events: none;
+            width: 100%;
+            box-sizing: border-box;
+            padding-right: 20px;
+            z-index: 5;
+        }
+        #top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        #mission-text {
+            font-size: 18px; font-weight: bold; color: #FFD700;
+            text-shadow: 1px 1px 0 #000;
+        }
+        #weapon-info {
+            font-size: 14px; color: #aaa; margin-top: 5px;
+        }
+        #stats {
+            font-size: 14px; background: rgba(0,0,0,0.6);
+            padding: 5px; border-radius: 5px;
+        }
+        #health-bar {
+            margin-top: 5px; width: 150px; height: 15px;
+            background: #444; border: 2px solid #fff;
+        }
+        #health-fill {
+            width: 100%; height: 100%;
+            background: #00FF00; transition: width 0.1s;
+        }
+
+        /* ЭКРАНЫ МЕНЮ */
+        .overlay {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center; 
+            z-index: 20;
+        }
+        h1 { margin-bottom: 5px; font-size: 30px; color: #0077FF; text-align: center; text-transform: uppercase; }
+        h2 { margin-bottom: 20px; font-size: 16px; color: #aaa; }
+        
+        .mission-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;
+        }
+
+        .btn {
+            background: #222; color: white;
+            border: 2px solid #0077FF; padding: 15px;
+            font-size: 16px; cursor: pointer; width: 200px;
+            text-align: center; font-family: inherit; margin: 5px;
+        }
+        .btn:hover { background: #0077FF; color: black; }
+        .btn:active { background: #004488; color: white; }
+        .boss-btn { border-color: #A020F0; color: #E0E0E0; }
+
+        /* МОБИЛЬНОЕ УПРАВЛЕНИЕ (Скрыто по умолчанию) */
+        #mobile-controls {
+            display: none; /* Включается через JS */
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none; 
+            z-index: 10;
+        }
+        
+        .joystick-zone {
+            position: absolute; bottom: 50px;
+            width: 120px; height: 120px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            pointer-events: auto;
+        }
+        #stick-left { left: 30px; }
+        #stick-right { right: 30px; }
+        
+        .joystick-knob {
+            position: absolute; top: 50%; left: 50%;
+            width: 50px; height: 50px;
+            background: rgba(0, 119, 255, 0.5);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        #stick-right .joystick-knob { background: rgba(255, 51, 51, 0.5); }
+
+        #weapon-bar {
+            position: absolute; bottom: 10px; left: 50%;
+            transform: translateX(-50%);
+            display: flex; gap: 5px;
+            pointer-events: auto;
+        }
+        .wpn-btn {
+            width: 45px; height: 45px;
+            background: #333; border: 1px solid #666;
+            color: white; font-size: 10px; font-weight: bold;
+            display: flex; justify-content: center; align-items: center;
+            border-radius: 5px; font-family: inherit; cursor: pointer;
+        }
+        .wpn-btn.active { border-color: #0077FF; background: #004488; }
+
+    </style>
+</head>
+<body>
+
+    <div id="platform-screen" class="overlay" style="z-index: 30;">
+        <h1>Tactical Shooter</h1>
+        <h2>Выберите управление</h2>
+        <button class="btn" onclick="selectPlatform('PC')">💻 ПК (Клавиатура)</button>
+        <button class="btn" onclick="selectPlatform('MOBILE')">📱 Телефон (Сенсор)</button>
+    </div>
+
+    <div id="menu-overlay" class="overlay" style="display: none;">
+        <h1 id="menu-title">МЕНЮ МИССИЙ</h1>
+        <h2 id="menu-subtitle">Выберите операцию</h2>
+        
+        <div id="menu-buttons" class="mission-grid">
+            <button class="btn" onclick="startMission(1)">Миссия 1: Окоп<br><small>(20 сек)</small></button>
+            <button class="btn" onclick="startMission(2)">Миссия 2: Зачистка<br><small>(5 врагов)</small></button>
+            <button class="btn boss-btn" onclick="startMission(3)">Миссия 3: БОСС<br><small>(Убить лидера)</small></button>
+            <button class="btn" onclick="startMission(4)">Миссия 4: ОРДА<br><small>(Выжить 40 сек)</small></button>
+        </div>
+
+        <button id="end-game-btn" class="btn" onclick="showMainMenu()" style="display:none; background: #FF3333;">В ГЛАВНОЕ МЕНЮ</button>
+    </div>
+
+    <div id="game-ui">
+        <div id="top-bar">
+            <div>
+                <div id="mission-text">Цель: ...</div>
+                <div id="weapon-info">Оружие: ПИСТОЛЕТ</div>
+                <div id="health-bar"><div id="health-fill"></div></div>
+            </div>
+            <div id="stats">Инфо...</div>
+        </div>
+    </div>
+
+    <div id="mobile-controls">
+        <div id="stick-left" class="joystick-zone"><div class="joystick-knob" id="knob-left"></div></div>
+        <div id="stick-right" class="joystick-zone"><div class="joystick-knob" id="knob-right"></div></div>
+        <div id="weapon-bar">
+            <div class="wpn-btn active" onclick="setWeapon('pistol', this)">Pistol</div>
+            <div class="wpn-btn" onclick="setWeapon('rifle', this)">Rifle</div>
+            <div class="wpn-btn" onclick="setWeapon('shotgun', this)">Shot</div>
+            <div class="wpn-btn" onclick="setWeapon('sniper', this)">Snip</div>
+            <div class="wpn-btn" onclick="setWeapon('minigun', this)">Mini</div>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // --- КОНСТАНТЫ ---
+        const PLAYER_SPEED = 4.5;
+        const ENEMY_SPEED = 2.5;
+        const BULLET_SPEED = 14;
+        
+        // --- СОСТОЯНИЕ ---
+        let controlMode = 'PC'; // 'PC' or 'MOBILE'
+        let gameState = 'PLATFORM_SELECT'; 
+        let currentMissionId = 0;
+        let gameTime = 0;
+        let enemiesKilled = 0;
+        let bossSpawned = false;
+        
+        let obstacles = [];
+        let bullets = [];
+        let enemies = [];
+        let particles = [];
+        let player;
+
+        // Ввод ПК
+        let keys = {};
+        let mouse = { x: 0, y: 0, down: false };
+
+        // Ввод Мобайл
+        let joystickLeft = { x: 0, y: 0, active: false, id: null };
+        let joystickRight = { x: 0, y: 0, active: false, id: null };
+
+        // --- КЛАССЫ ---
+        class Rect {
+            constructor(x, y, size) {
+                this.x = x; this.y = y; this.size = size;
+            }
+            draw() {
+                ctx.fillStyle = '#444'; ctx.fillRect(this.x, this.y, this.size, this.size);
+                ctx.strokeStyle = '#222'; ctx.lineWidth = 3; ctx.strokeRect(this.x, this.y, this.size, this.size);
+                ctx.beginPath(); ctx.strokeStyle = '#333';
+                ctx.moveTo(this.x, this.y); ctx.lineTo(this.x+this.size, this.y+this.size);
+                ctx.stroke();
+            }
+        }
+
+        class Entity {
+            constructor(x, y, radius, color, hp) {
+                this.x = x; this.y = y; this.radius = radius;
+                this.color = color; this.hp = hp; this.maxHp = hp;
+                this.dead = false; this.cooldown = 0;
+            }
+            draw() {
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color; ctx.fill();
+                ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.stroke();
+                if (this.hp < this.maxHp) {
+                    let w = this.radius * 2;
+                    ctx.fillStyle = 'red'; ctx.fillRect(this.x - w/2, this.y - this.radius - 8, w, 4);
+                    ctx.fillStyle = '#0f0'; ctx.fillRect(this.x - w/2, this.y - this.radius - 8, w * (this.hp / this.maxHp), 4);
+                }
+            }
+            move(dx, dy) {
+                if (!this.checkWallCollision(this.x + dx, this.y)) this.x += dx;
+                if (!this.checkWallCollision(this.x, this.y + dy)) this.y += dy;
+                if (this.x < this.radius) this.x = this.radius;
+                if (this.x > canvas.width - this.radius) this.x = canvas.width - this.radius;
+                if (this.y < this.radius) this.y = this.radius;
+                if (this.y > canvas.height - this.radius) this.y = canvas.height - this.radius;
+            }
+            checkWallCollision(x, y) {
+                for (let obs of obstacles) {
+                    let cx = Math.max(obs.x, Math.min(x, obs.x + obs.size));
+                    let cy = Math.max(obs.y, Math.min(y, obs.y + obs.size));
+                    let dist = (x - cx)**2 + (y - cy)**2;
+                    if (dist < this.radius**2) return true;
+                }
+                return false;
+            }
+        }
+
+        class Player extends Entity {
+            constructor(x, y) {
+                super(x, y, 15, '#0077FF', 100);
+                this.weapon = 'pistol'; 
+            }
+            
+            update() {
+                if (this.cooldown > 0) this.cooldown--;
+                let dx = 0, dy = 0;
+
+                // --- ЛОГИКА УПРАВЛЕНИЯ ---
+                if (controlMode === 'PC') {
+                    // Клавиатура
+                    if (keys['Digit1']) { this.weapon = 'pistol'; updateUI(); }
+                    if (keys['Digit2']) { this.weapon = 'rifle'; updateUI(); }
+                    if (keys['Digit3']) { this.weapon = 'shotgun'; updateUI(); }
+                    if (keys['Digit4']) { this.weapon = 'sniper'; updateUI(); }
+                    if (keys['Digit5']) { this.weapon = 'minigun'; updateUI(); }
+
+                    if (keys['KeyW'] || keys['ArrowUp']) dy = -PLAYER_SPEED;
+                    if (keys['KeyS'] || keys['ArrowDown']) dy = PLAYER_SPEED;
+                    if (keys['KeyA'] || keys['ArrowLeft']) dx = -PLAYER_SPEED;
+                    if (keys['KeyD'] || keys['ArrowRight']) dx = PLAYER_SPEED;
+                    
+                    if (dx && dy) { dx *= 0.707; dy *= 0.707; }
+
+                    // Мышь
+                    if (mouse.down) this.shootInput(Math.atan2(mouse.y - this.y, mouse.x - this.x));
+
+                } else {
+                    // Мобильный
+                    if (joystickLeft.active) {
+                        dx = joystickLeft.x * PLAYER_SPEED;
+                        dy = joystickLeft.y * PLAYER_SPEED;
+                    }
+                    if (joystickRight.active) {
+                        this.shootInput(Math.atan2(joystickRight.y, joystickRight.x));
+                    }
+                }
+
+                this.move(dx, dy);
+            }
+
+            shootInput(angle) {
+                if (this.cooldown > 0) return;
+
+                if (this.weapon === 'pistol') {
+                    this.spawnBullet(angle, 0, 20, 20); 
+                } 
+                else if (this.weapon === 'rifle') {
+                    this.spawnBullet(angle, (Math.random()-0.5)*0.2, 10, 6);
+                } 
+                else if (this.weapon === 'shotgun') {
+                    this.spawnBullet(angle, 0, 15, 45);
+                    this.spawnBullet(angle + 0.15, 0, 15, 45);
+                    this.spawnBullet(angle - 0.15, 0, 15, 45);
+                }
+                else if (this.weapon === 'sniper') {
+                    this.spawnBullet(angle, 0, 100, 60, 25);
+                }
+                else if (this.weapon === 'minigun') {
+                    this.spawnBullet(angle, (Math.random()-0.5)*0.4, 8, 3);
+                }
+            }
+
+            spawnBullet(angle, spread, dmg, cd, speed = BULLET_SPEED) {
+                const finalAngle = angle + spread;
+                const vel = {
+                    x: Math.cos(finalAngle) * speed,
+                    y: Math.sin(finalAngle) * speed
+                };
+                bullets.push(new Bullet(this.x, this.y, vel, false, dmg));
+                this.cooldown = cd;
+                if(this.weapon === 'sniper') {
+                    ctx.translate((Math.random()-0.5)*5, (Math.random()-0.5)*5);
+                    setTimeout(()=>ctx.setTransform(1,0,0,1,0,0), 50);
+                }
+            }
+        }
+
+        class Enemy extends Entity {
+            constructor(x, y, isBoss = false) {
+                let size = isBoss ? 40 : 15;
+                let hp = isBoss ? 600 : 40;
+                let color = isBoss ? '#A020F0' : '#FF3333';
+                super(x, y, size, color, hp);
+                this.isBoss = isBoss;
+                this.speed = isBoss ? 1.5 : ENEMY_SPEED;
+            }
+            update() {
+                if (this.cooldown > 0) this.cooldown--;
+                const dist = Math.hypot(player.x - this.x, player.y - this.y);
+                const angle = Math.atan2(player.y - this.y, player.x - this.x);
+
+                if (dist > 150 + this.radius) {
+                    this.move(Math.cos(angle) * this.speed, Math.sin(angle) * this.speed);
+                } else if (dist < 100) {
+                    this.move(-Math.cos(angle) * (this.speed*0.5), -Math.sin(angle) * (this.speed*0.5));
+                }
+
+                let shootDist = this.isBoss ? 600 : 400;
+                let chance = this.isBoss ? 0.1 : 0.03;
+                if (dist < shootDist && Math.random() < chance) {
+                    const shotAngle = angle + (Math.random()-0.5)*(this.isBoss ? 0.1 : 0.3);
+                    const vel = { x: Math.cos(shotAngle) * BULLET_SPEED, y: Math.sin(shotAngle) * BULLET_SPEED };
+                    let dmg = this.isBoss ? 25 : 10;
+                    bullets.push(new Bullet(this.x, this.y, vel, true, dmg, this.isBoss ? 8 : 4));
+                    this.cooldown = 40;
+                }
+            }
+        }
+
+        class Bullet {
+            constructor(x, y, vel, isEnemy, dmg, radius = 4) {
+                this.x = x; this.y = y; this.vel = vel; 
+                this.isEnemy = isEnemy; this.dmg = dmg;
+                this.dead = false; this.radius = radius;
+            }
+            update() {
+                this.x += this.vel.x; this.y += this.vel.y;
+                for (let obs of obstacles) {
+                    if (this.x > obs.x && this.x < obs.x + obs.size &&
+                        this.y > obs.y && this.y < obs.y + obs.size) {
+                        this.dead = true; createParticles(this.x, this.y, '#888'); return;
+                    }
+                }
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.dead = true;
+            }
+            draw() {
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+                ctx.fillStyle = this.isEnemy ? (this.radius > 4 ? '#A020F0' : 'orange') : '#FFFF00';
+                ctx.fill();
+            }
+        }
+
+        function createParticles(x, y, color) {
+            for(let i=0; i<5; i++) {
+                particles.push({x, y, color, vx:(Math.random()-0.5)*7, vy:(Math.random()-0.5)*7, life:15});
+            }
+        }
+
+        // --- УПРАВЛЕНИЕ СИСТЕМОЙ ---
+
+        function selectPlatform(mode) {
+            controlMode = mode;
+            document.getElementById('platform-screen').style.display = 'none';
+            showMainMenu();
+
+            if (mode === 'MOBILE') {
+                document.getElementById('mobile-controls').style.display = 'block';
+                // Скрываем подсказки клавиш ПК
+                document.getElementById('weapon-info').style.display = 'none';
+            } else {
+                document.getElementById('mobile-controls').style.display = 'none';
+                document.getElementById('weapon-info').style.display = 'block';
+            }
+        }
+
+        function updateUI() {
+            if (controlMode === 'PC' && player) {
+                document.getElementById('weapon-info').innerText = "Оружие: " + player.weapon.toUpperCase();
+            }
+        }
+
+        function setWeapon(wpn, btn) {
+            if (!player) return;
+            player.weapon = wpn;
+            document.querySelectorAll('.wpn-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function showMainMenu() {
+            gameState = 'MENU';
+            document.getElementById('menu-overlay').style.display = 'flex';
+            document.getElementById('end-game-btn').style.display = 'none';
+            document.getElementById('game-ui').style.display = 'none';
+        }
+
+        function startMission(id) {
+            currentMissionId = id; gameState = 'PLAYING';
+            player = new Player(canvas.width/2, canvas.height/2);
+            enemies = []; bullets = []; particles = []; obstacles = [];
+            gameTime = 0; enemiesKilled = 0; bossSpawned = false;
+            
+            // Сброс ввода
+            keys = {}; mouse.down = false;
+            joystickLeft = {x:0, y:0, active:false}; joystickRight = {x:0, y:0, active:false};
+            document.getElementById('knob-left').style.transform = `translate(-50%, -50%)`;
+            document.getElementById('knob-right').style.transform = `translate(-50%, -50%)`;
+
+            for (let i = 0; i < 12; i++) {
+                let s = 40 + Math.random() * 60;
+                let x = Math.random() * (canvas.width - s);
+                let y = Math.random() * (canvas.height - s);
+                if (Math.hypot(x - player.x, y - player.y) > 250) obstacles.push(new Rect(x, y, s));
+            }
+
+            let txt = "";
+            if (id===1) txt = "Выжить 20с";
+            if (id===2) txt = "Убить 5";
+            if (id===3) txt = "Убить БОССА";
+            if (id===4) txt = "ОРДА 40с";
+            document.getElementById('mission-text').innerText = txt;
+
+            document.getElementById('menu-overlay').style.display = 'none';
+            document.getElementById('game-ui').style.display = 'block';
+            updateUI();
+        }
+
+        function gameOver(win) {
+            gameState = 'GAMEOVER';
+            document.getElementById('menu-overlay').style.display = 'flex';
+            document.getElementById('end-game-btn').style.display = 'block';
+            document.getElementById('menu-buttons').style.display = 'none'; // Скрыть выбор миссий временно
+            
+            // Кнопка В МЕНЮ вернет выбор миссий
+            document.getElementById('end-game-btn').onclick = function() {
+                document.getElementById('menu-buttons').style.display = 'grid';
+                showMainMenu();
+            };
+
+            let title = document.getElementById('menu-title');
+            if (win) {
+                title.innerText = "ПОБЕДА"; title.style.color = "#00FF00";
+                document.getElementById('menu-subtitle').innerText = "Отличная работа!";
+            } else {
+                title.innerText = "ПОТРАЧЕНО"; title.style.color = "red";
+                document.getElementById('menu-subtitle').innerText = "Миссия провалена";
+            }
+        }
+
+        // --- GAME LOOP ---
+        function updateGame() {
+            if (gameState !== 'PLAYING') return;
+            gameTime += 1/60;
+            
+            // Спавн
+            if (currentMissionId === 3 && !bossSpawned && gameTime > 1) {
+                enemies.push(new Enemy(canvas.width-50, 50, true)); bossSpawned = true;
+            }
+            let spawnRate = 9999;
+            if (currentMissionId === 1) spawnRate = 120; 
+            if (currentMissionId === 2) spawnRate = 150; 
+            if (currentMissionId === 3) spawnRate = 200; 
+            if (currentMissionId === 4) spawnRate = 60;  
+            if (Math.floor(gameTime * 60) % spawnRate === 0) { 
+                 let ex, ey;
+                 do { ex = Math.random() * canvas.width; ey = Math.random() * canvas.height; } 
+                 while(Math.hypot(ex-player.x, ey-player.y) < 200);
+                 enemies.push(new Enemy(ex, ey));
+            }
+
+            player.update();
+            document.getElementById('health-fill').style.width = Math.max(0, player.hp) + '%';
+
+            // Победа/Поражение
+            if (currentMissionId === 1) { 
+                document.getElementById('stats').innerText = `${gameTime.toFixed(0)}/20с`;
+                if (gameTime >= 20) gameOver(true);
+            } 
+            else if (currentMissionId === 2) { 
+                document.getElementById('stats').innerText = `${enemiesKilled}/5`;
+                if (enemiesKilled >= 5) gameOver(true);
+            }
+            else if (currentMissionId === 3) {
+                let bossAlive = enemies.some(e => e.isBoss);
+                if (bossSpawned && !bossAlive) gameOver(true);
+                document.getElementById('stats').innerText = bossAlive ? "БОСС!" : "";
+            }
+            else if (currentMissionId === 4) {
+                 document.getElementById('stats').innerText = `${gameTime.toFixed(0)}/40с`;
+                 if (gameTime >= 40) gameOver(true);
+            }
+
+            // Объекты
+            enemies.forEach((en, i) => {
+                en.update();
+                if (en.hp <= 0) {
+                    createParticles(en.x, en.y, en.color);
+                    enemies.splice(i, 1); enemiesKilled++;
+                }
+            });
+            bullets.forEach((b, i) => {
+                b.update();
+                let hit = false;
+                if (!b.isEnemy) {
+                    enemies.forEach(en => {
+                        if (!hit && Math.hypot(b.x - en.x, b.y - en.y) < en.radius + b.radius) {
+                            en.hp -= b.dmg; hit = true; createParticles(b.x, b.y, 'red');
+                        }
+                    });
+                } else {
+                    if (Math.hypot(b.x - player.x, b.y - player.y) < player.radius + b.radius) {
+                        player.hp -= b.dmg; hit = true; createParticles(b.x, b.y, 'blue');
+                        if (player.hp <= 0) gameOver(false);
+                    }
+                }
+                if (hit || b.dead) bullets.splice(i, 1);
+            });
+            particles.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy; p.life--;
+                if (p.life <= 0) particles.splice(i, 1);
+            });
+        }
+
+        function drawGame() {
+            ctx.fillStyle = '#222'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            obstacles.forEach(o => o.draw());
+            particles.forEach(p => { ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 3, 3); });
+            bullets.forEach(b => b.draw());
+            enemies.forEach(e => e.draw());
+            if (player.hp > 0) player.draw();
+        }
+
+        function loop() {
+            requestAnimationFrame(loop);
+            if (gameState === 'PLAYING') { updateGame(); drawGame(); }
+        }
+
+        // --- INPUT LISTENERS (PC) ---
+        window.addEventListener('keydown', e => { if(controlMode==='PC') keys[e.code] = true; });
+        window.addEventListener('keyup', e => { if(controlMode==='PC') keys[e.code] = false; });
+        window.addEventListener('mousemove', e => { if(controlMode==='PC') { mouse.x = e.clientX; mouse.y = e.clientY; }});
+        window.addEventListener('mousedown', () => { if(controlMode==='PC') mouse.down = true; });
+        window.addEventListener('mouseup', () => { if(controlMode==='PC') mouse.down = false; });
+
+        // --- INPUT LISTENERS (MOBILE) ---
+        function handleJoystick(touch, isLeft) {
+            const zone = isLeft ? document.getElementById('stick-left') : document.getElementById('stick-right');
+            const rect = zone.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            let dx = touch.clientX - centerX;
+            let dy = touch.clientY - centerY;
+            const maxDist = rect.width / 2;
+            const dist = Math.min(Math.hypot(dx, dy), maxDist);
+            const angle = Math.atan2(dy, dx);
+            const inputX = Math.cos(angle) * (dist / maxDist);
+            const inputY = Math.sin(angle) * (dist / maxDist);
+            
+            const knob = isLeft ? document.getElementById('knob-left') : document.getElementById('knob-right');
+            knob.style.transform = `translate(-50%, -50%) translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
+
+            if (isLeft) { joystickLeft.x = inputX; joystickLeft.y = inputY; joystickLeft.active = true; joystickLeft.id = touch.identifier; }
+            else { joystickRight.x = inputX; joystickRight.y = inputY; joystickRight.active = true; joystickRight.id = touch.identifier; }
+        }
+        function resetJoystick(isLeft) {
+            if (isLeft) { joystickLeft.active = false; joystickLeft.x = 0; joystickLeft.y = 0; document.getElementById('knob-left').style.transform = `translate(-50%, -50%)`; }
+            else { joystickRight.active = false; joystickRight.x = 0; joystickRight.y = 0; document.getElementById('knob-right').style.transform = `translate(-50%, -50%)`; }
+        }
+
+        document.addEventListener('touchstart', e => {
+            if (controlMode !== 'MOBILE' || gameState !== 'PLAYING') return;
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                let t = e.changedTouches[i];
+                let zL = document.getElementById('stick-left').getBoundingClientRect();
+                if (t.clientX >= zL.left && t.clientX <= zL.right && t.clientY >= zL.top && t.clientY <= zL.bottom) handleJoystick(t, true);
+                let zR = document.getElementById('stick-right').getBoundingClientRect();
+                if (t.clientX >= zR.left && t.clientX <= zR.right && t.clientY >= zR.top && t.clientY <= zR.bottom) handleJoystick(t, false);
+            }
+        }, {passive: false});
+        document.addEventListener('touchmove', e => {
+            if (controlMode !== 'MOBILE' || gameState !== 'PLAYING') return;
+            e.preventDefault();
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                let t = e.changedTouches[i];
+                if (t.identifier === joystickLeft.id) handleJoystick(t, true);
+                if (t.identifier === joystickRight.id) handleJoystick(t, false);
+            }
+        }, {passive: false});
+        document.addEventListener('touchend', e => {
+            if (controlMode !== 'MOBILE') return;
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                let t = e.changedTouches[i];
+                if (t.identifier === joystickLeft.id) resetJoystick(true);
+                if (t.identifier === joystickRight.id) resetJoystick(false);
+            }
+        });
+
+        loop();
+
+    </script>
+</body>
+</html>
