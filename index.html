@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tactical Shooter: SMART UI</title>
+    <title>Tactical Shooter: SHOP FIX</title>
     <style>
         body {
             margin: 0;
@@ -49,7 +49,6 @@
         #grenade-counter { color: #FFA500; font-weight: bold; }
         #coin-counter { color: #FFFF00; font-weight: bold; }
         
-        /* BARS (Standard) */
         .bar-container {
             margin-top: 5px; width: 200px; height: 15px;
             background: #444; border: 2px solid #fff;
@@ -82,6 +81,7 @@
         }
         h1 { margin-bottom: 5px; font-size: 28px; color: #00AAFF; text-align: center; text-transform: uppercase; text-shadow: 0 0 10px white; }
         h2 { margin-bottom: 10px; font-size: 16px; color: #aaa; }
+        h3 { margin: 5px 0; font-size: 18px; color: #aaa; text-align: center; }
         .menu-stats { color: #FFFF00; margin-bottom: 20px; font-size: 14px; border: 1px solid #555; padding: 10px; text-align: center; }
         
         .mission-grid {
@@ -101,7 +101,7 @@
         .special-btn { border-color: #00FFCC; color: #AAFFFF; }
         .shop-btn { border-color: #FFFF00; color: #FFFFAA; width: 340px; margin-top: 10px; font-size: 16px; font-weight: bold;}
 
-        /* МАГАЗИН */
+        /* МАГАЗИН (ПК версія) */
         #shop-screen { display: none; }
         .shop-container {
             display: flex; gap: 20px; width: 95%; max-width: 800px; justify-content: center; flex-wrap: wrap;
@@ -126,7 +126,7 @@
 
         /* ПРОМОКОДИ */
         .promo-container {
-            margin-top: 20px; padding: 10px; border-top: 2px dashed #555; width: 100%; text-align: center;
+            margin-top: 20px; padding: 10px; border-top: 2px dashed #555; width: 100%; text-align: center; box-sizing: border-box;
         }
         #promo-input {
             background: #111; border: 1px solid #0077FF; color: white; padding: 5px; width: 150px; font-family: inherit; text-transform: uppercase;
@@ -160,7 +160,7 @@
             display: flex; justify-content: space-between; align-items: center;
         }
 
-        /* --- МОБІЛЬНЕ КЕРУВАННЯ (ПРИХОВАНО ЗА ЗАМОВЧУВАННЯМ) --- */
+        /* --- МОБІЛЬНЕ КЕРУВАННЯ --- */
         #mobile-controls {
             display: none; position: absolute; top: 0; left: 0;
             width: 100%; height: 100%; pointer-events: none; z-index: 10;
@@ -215,10 +215,10 @@
         }
 
         /* =============================================================== */
-        /* === SPECIAL STYLES ONLY FOR MOBILE MODE (ACTIVATED BY JS) === */
+        /* === СПЕЦІАЛЬНІ СТИЛІ ДЛЯ МОБІЛЬНОГО РЕЖИМУ (МАГАЗИН) === */
         /* =============================================================== */
         
-        /* Коли body має клас "mobile-mode", ми змінюємо розміри */
+        /* Основний UI гри */
         body.mobile-mode .bar-container { width: 100px; height: 8px; border-width: 1px; }
         body.mobile-mode #xp-bar-container { height: 4px; }
         body.mobile-mode .stat-box { font-size: 10px; padding: 2px 4px; margin-bottom: 2px; }
@@ -226,10 +226,25 @@
         body.mobile-mode #level-text { font-size: 10px; top: -14px; }
         body.mobile-mode #game-ui { padding-right: 5px; top: 5px; left: 5px; }
         
-        /* Зменшуємо шрифти в магазині для телефону */
-        body.mobile-mode .shop-container { flex-direction: column; align-items: center; }
-        body.mobile-mode .shop-column { width: 90%; margin-bottom: 5px; padding: 5px; }
+        /* МАГАЗИН В МОБІЛЬНОМУ РЕЖИМІ */
+        body.mobile-mode .shop-container { flex-direction: column; align-items: center; padding-bottom: 60px; /* Місце для кнопки виходу */ }
+        body.mobile-mode .shop-column { width: 95%; margin-bottom: 5px; padding: 5px; box-sizing: border-box; }
         body.mobile-mode h1 { font-size: 20px; }
+        body.mobile-mode h3 { font-size: 14px; }
+        body.mobile-mode .shop-item { font-size: 11px; padding-bottom: 2px; margin-bottom: 5px; }
+        /* Супер компактні кнопки для магазину */
+        body.mobile-mode .buy-btn { padding: 2px 5px; font-size: 10px; min-width: 30px; text-align: center; }
+        
+        /* Компактне прев'ю */
+        body.mobile-mode #previewCanvas { width: 100px; height: 100px; }
+        body.mobile-mode .preview-area { margin-bottom: 5px; }
+
+        /* Зручний промокод для пальців */
+        body.mobile-mode .promo-container { margin-top: 10px; padding: 5px; display: flex; justify-content: center; align-items: center; }
+        body.mobile-mode #promo-input { width: 60%; font-size: 14px; padding: 8px; }
+        body.mobile-mode #promo-btn { padding: 8px 15px; font-size: 14px; }
+
+        /* Кнопки меню */
         body.mobile-mode .btn { padding: 5px; font-size: 10px; width: 140px; }
         body.mobile-mode .shop-btn { width: 90%; font-size: 12px; }
         body.mobile-mode #levelup-notify { font-size: 24px; }
@@ -255,14 +270,14 @@
         <button class="btn" onclick="selectPlatform('MOBILE')">📱 Телефон (Сенсор)</button>
     </div>
 
-    <div id="shop-screen" class="overlay" style="z-index: 25; display: none;">
+    <div id="shop-screen" class="overlay" style="z-index: 25; display: none; overflow-y: auto;">
         <h1>МАГАЗИН</h1>
-        <div style="color: yellow; margin-bottom: 10px; font-size: 16px;">💰: <span id="shop-coins">0</span> | LVL: <span id="shop-level">1</span></div>
+        <div style="color: yellow; margin-bottom: 5px; font-size: 14px;">💰: <span id="shop-coins">0</span> | LVL: <span id="shop-level">1</span></div>
         
         <div class="shop-container">
             <div class="shop-column preview-area">
                 <h3>ВИГЛЯД</h3>
-                <canvas id="previewCanvas" width="150" height="150" style="border: 2px solid #555; background: #222; margin-bottom: 10px;"></canvas>
+                <canvas id="previewCanvas" width="150" height="150" style="border: 2px solid #555; background: #222; margin-bottom: 5px;"></canvas>
                 <input type="color" id="colorPicker" value="#0077FF" onchange="updatePreview()">
             </div>
 
@@ -276,14 +291,13 @@
                 <div id="weapons-list"></div>
                 
                 <div class="promo-container">
-                    <div style="font-size:12px; color:#aaa; margin-bottom:5px;">ПРОМОКОД:</div>
-                    <input type="text" id="promo-input" placeholder="КОД ТУТ">
+                    <input type="text" id="promo-input" placeholder="КОД">
                     <button id="promo-btn" onclick="redeemCode()">OK</button>
                 </div>
             </div>
         </div>
 
-        <button class="btn" onclick="closeShop()" style="margin-top: 20px; width: 300px;">ВИЙТИ</button>
+        <button class="btn" onclick="closeShop()" style="margin-top: 10px; width: 90%; position: fixed; bottom: 10px; z-index: 30;">ВИЙТИ З МАГАЗИНУ</button>
     </div>
 
     <div id="menu-overlay" class="overlay" style="display: none;">
@@ -418,29 +432,30 @@
             if (success) { playerStats.redeemedCodes.push(code); saveGame(); updateMenuStats(); document.getElementById('shop-coins').innerText = playerStats.coins; document.getElementById('shop-level').innerText = playerStats.level; renderShopItems(); alert(msg); input.value = ""; }
         }
 
-        const PLAYER_SPEED = 4.5; const BULLET_SPEED = 14; const ENEMY_SPEED = 1.5; 
-        let controlMode = 'PC'; let gameState = 'PLATFORM_SELECT'; let currentMissionId = 0;
-        let gameTime = 0; let enemiesKilled = 0; let grenadesKilled = 0; let bossSpawned = false;
-        let zoneTimer = 0; let captureZone = { x: 0, y: 0, radius: 100 }; let screenShake = 0;
-        let obstacles = []; let bullets = []; let enemies = []; let particles = []; let drops = []; let thrownGrenades = []; let decorations = []; let snowflakes = []; let player;
-        let keys = {}; let mouse = { x: 0, y: 0, down: false };
-        let joystickLeft = { x: 0, y: 0, active: false, id: null }; let joystickRight = { x: 0, y: 0, active: false, id: null }; let lastAimAngle = 0;
-        for(let i=0; i<60; i++) snowflakes.push({ x: Math.random()*window.innerWidth, y: Math.random()*window.innerHeight, r: Math.random()*2+0.5, s: Math.random()*1+0.2 });
-
-        class DropItem { constructor(x, y, type) { this.x = x; this.y = y; this.type = type; this.size = 20; this.bobOffset = Math.random()*Math.PI*2; } draw() { let bob = Math.sin(gameTime * 5 + this.bobOffset) * 3; let Y = this.y + bob; if (this.type === 'medkit') { ctx.fillStyle = '#00CC00'; ctx.fillRect(this.x-10, Y-10, 20, 20); ctx.fillStyle = '#FFF'; ctx.fillRect(this.x-3, Y-8, 6, 16); ctx.fillRect(this.x-8, Y-3, 16, 6); } else if (this.type === 'grenade') { ctx.fillStyle = '#FFA500'; ctx.fillRect(this.x-10, Y-10, 20, 20); ctx.fillStyle='#000'; ctx.font="16px Arial"; ctx.fillText("💣", this.x-9, Y+6); } else if (this.type === 'coin') { ctx.fillStyle='#FFFF00'; ctx.beginPath(); ctx.arc(this.x, Y, 10, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle='#DAA520'; ctx.lineWidth=2; ctx.stroke(); ctx.fillStyle='#000'; ctx.font="bold 14px Arial"; ctx.fillText("$", this.x-4, Y+5); } } }
-        class GrenadeObj { constructor(x, y, tx, ty) { this.x = x; this.y = y; this.timer = 60; this.dead = false; const angle = Math.atan2(ty - y, tx - x); const dist = Math.hypot(tx - x, ty - y); const speed = Math.min(dist / 20, 10); this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed; this.flyTime = Math.floor(dist / speed); } update() { if (this.flyTime > 0) { this.x += this.vx; this.y += this.vy; this.flyTime--; } this.timer--; if (this.timer <= 0) { this.explode(); this.dead = true; } } explode() { createExplosion(this.x, this.y); screenShake = 15; enemies.forEach(en => { if (Math.hypot(en.x - this.x, en.y - this.y) < 120) { en.takeDamage(150); if (en.hp <= 0) grenadesKilled++; } }); } draw() { ctx.beginPath(); ctx.arc(this.x, this.y, 6, 0, Math.PI*2); ctx.fillStyle = Math.floor(this.timer/5)%2===0 ? 'red' : 'yellow'; ctx.fill(); ctx.strokeStyle='#000'; ctx.stroke(); } }
-        class Rect { constructor(x, y, size) { this.x = x; this.y = y; this.size = size; } draw() { ctx.fillStyle = '#556'; ctx.fillRect(this.x, this.y, this.size, this.size); ctx.fillStyle = '#EEF'; ctx.beginPath(); ctx.moveTo(this.x-2, this.y); ctx.lineTo(this.x+this.size+2, this.y); ctx.lineTo(this.x+this.size+2, this.y+15); for(let i=0; i<this.size; i+=10) ctx.arc(this.x+this.size-i, this.y+15, 5, 0, Math.PI); ctx.lineTo(this.x-2, this.y+15); ctx.fill(); ctx.strokeStyle='#223'; ctx.lineWidth=2; ctx.strokeRect(this.x, this.y, this.size, this.size); } }
-        class Entity { constructor(x, y, radius, color, hp) { this.x=x; this.y=y; this.radius=radius; this.color=color; this.hp=hp; this.maxHp=hp; this.dead=false; this.cooldown=0; } drawBase() { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2); ctx.fillStyle=this.color; ctx.fill(); ctx.strokeStyle='#000'; ctx.lineWidth=2; ctx.stroke(); } drawHealthBar() { if (this.hp < this.maxHp || this instanceof Player) { ctx.save(); ctx.fillStyle = '#FFFFFF'; ctx.font = "bold 12px Courier New"; ctx.textAlign = "center"; ctx.shadowColor = "black"; ctx.shadowBlur = 4; ctx.fillText(Math.ceil(this.hp), this.x, this.y - this.radius - 15); ctx.restore(); } if (this.hp < this.maxHp) { let w = this.radius * 2; ctx.fillStyle='red'; ctx.fillRect(this.x-w/2, this.y-this.radius-10, w, 4); ctx.fillStyle='#00FF00'; ctx.fillRect(this.x-w/2, this.y-this.radius-10, w*(this.hp/this.maxHp), 4); } } move(dx, dy) { if (!this.checkWallCollision(this.x+dx, this.y)) this.x+=dx; if (!this.checkWallCollision(this.x, this.y+dy)) this.y+=dy; this.x=Math.max(this.radius, Math.min(canvas.width-this.radius, this.x)); this.y=Math.max(this.radius, Math.min(canvas.height-this.radius, this.y)); } checkWallCollision(x, y) { for (let obs of obstacles) { let cx=Math.max(obs.x, Math.min(x, obs.x+obs.size)); let cy=Math.max(obs.y, Math.min(y, obs.y+obs.size)); if ((x-cx)**2 + (y-cy)**2 < this.radius**2) return true; } return false; } }
-        class Player extends Entity { constructor(x, y) { super(x, y, 15, playerStats.color, 100); this.weapon='pistol'; this.grenades=3; this.grenadeCooldown=0; this.angle=0; this.muzzleTimer=0; } draw() { ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle); ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI*2); ctx.fillStyle=playerStats.color; ctx.fill(); ctx.strokeStyle='#000'; ctx.lineWidth=2; ctx.stroke(); if (playerStats.currentOutfit === 'santa_hat') { ctx.fillStyle='#D40000'; ctx.beginPath(); ctx.moveTo(-15,-5); ctx.lineTo(15,-5); ctx.lineTo(0,-28); ctx.fill(); ctx.fillStyle='#FFF'; ctx.fillRect(-16,-5,32,6); ctx.beginPath(); ctx.arc(0,-28,5,0,Math.PI*2); ctx.fill(); } else if (playerStats.currentOutfit === 'helmet') { ctx.fillStyle='#334400'; ctx.beginPath(); ctx.arc(0,0,16,Math.PI,0); ctx.fill(); ctx.fillStyle='#223300'; ctx.fillRect(-15,-5,30,5); } else if (playerStats.currentOutfit === 'vest') { ctx.fillStyle='#2E3B22'; ctx.fillRect(-14,-14,28,28); ctx.fillStyle='#4A5D3A'; ctx.fillRect(-10,2,8,10); ctx.fillRect(2,2,8,10); } else if (playerStats.currentOutfit === 'cap') { ctx.fillStyle='#C2B280'; ctx.beginPath(); ctx.arc(0,0,15,Math.PI*0.8,Math.PI*3.2); ctx.fill(); ctx.fillStyle='#A09165'; ctx.fillRect(13,-13,14,26); } if (this.weapon === 'snowball') { ctx.fillStyle='#00FFFF'; ctx.fillRect(10,-5,20,10); ctx.fillStyle='#FFF'; ctx.fillRect(12,-7,10,14); ctx.beginPath(); ctx.arc(10,0,5,0,Math.PI*2); ctx.fillStyle='#88FFFF'; ctx.fill(); } else { ctx.fillStyle='#000'; ctx.fillRect(10,-3,15,6); } if (this.muzzleTimer > 0) { ctx.beginPath(); ctx.arc(this.weapon==='snowball'?35:28, 0, 8+Math.random()*5, 0, Math.PI*2); ctx.fillStyle=this.weapon==='snowball'?`rgba(200,255,255,${this.muzzleTimer/3})`:`rgba(255,255,0,${this.muzzleTimer/3})`; ctx.fill(); this.muzzleTimer--; } ctx.restore(); } update() { if (this.cooldown > 0) this.cooldown--; if (this.grenadeCooldown > 0) this.grenadeCooldown--; let dx=0, dy=0; if (activeCheats.aim && enemies.length > 0) { let closest=null, minDist=Infinity; enemies.forEach(e=>{ let d=Math.hypot(e.x-this.x, e.y-this.y); if(d<minDist){minDist=d; closest=e;} }); if(closest) { this.angle=Math.atan2(closest.y-this.y, closest.x-this.x); lastAimAngle=this.angle; } } if (activeCheats.autoloot && drops.length > 0) { this.x=drops[0].x; this.y=drops[0].y; } if (controlMode === 'PC') { if (keys['Digit1']) this.trySetWeapon('pistol'); if (keys['Digit2']) this.trySetWeapon('rifle'); if (keys['Digit3']) this.trySetWeapon('shotgun'); if (keys['Digit4']) this.trySetWeapon('sniper'); if (keys['Digit5']) this.trySetWeapon('minigun'); if (keys['Digit6']) this.trySetWeapon('snowball'); if (keys['Space']) this.throwGrenade(mouse.x, mouse.y); if (keys['KeyW'] || keys['ArrowUp']) dy = -PLAYER_SPEED; if (keys['KeyS'] || keys['ArrowDown']) dy = PLAYER_SPEED; if (keys['KeyA'] || keys['ArrowLeft']) dx = -PLAYER_SPEED; if (keys['KeyD'] || keys['ArrowRight']) dx = PLAYER_SPEED; if (dx && dy) { dx *= 0.707; dy *= 0.707; } if (!activeCheats.aim) { this.angle = Math.atan2(mouse.y-this.y, mouse.x-this.x); lastAimAngle=this.angle; } if (mouse.down) this.shootInput(this.angle); } else { if (joystickLeft.active) { dx = joystickLeft.x * PLAYER_SPEED; dy = joystickLeft.y * PLAYER_SPEED; } if (joystickRight.active) { if (!activeCheats.aim) { this.angle = Math.atan2(joystickRight.y, joystickRight.x); lastAimAngle=this.angle; } this.shootInput(this.angle); } else if ((dx !== 0 || dy !== 0) && !activeCheats.aim) { this.angle = Math.atan2(dy, dx); } } this.move(dx, dy); } trySetWeapon(wpn) { if (wpn === 'minigun' && playerStats.level < 5) return; if (playerStats.unlockedWeapons.includes(wpn)) { this.weapon = wpn; updateUI(); } } throwGrenade(tx, ty) { if (this.grenades > 0 && this.grenadeCooldown <= 0) { this.grenades--; this.grenadeCooldown=60; thrownGrenades.push(new GrenadeObj(this.x, this.y, tx, ty)); updateUI(); } } shootInput(angle) { if (this.cooldown > 0) return; this.muzzleTimer=3; if (this.weapon==='shotgun'||this.weapon==='sniper') screenShake=5; if (this.weapon==='pistol') this.spawnBullet(angle, 0, 20, 20); else if (this.weapon==='rifle') this.spawnBullet(angle, (Math.random()-0.5)*0.2, 10, 6); else if (this.weapon==='shotgun') { this.spawnBullet(angle,0,15,45); this.spawnBullet(angle+0.15,0,15,45); this.spawnBullet(angle-0.15,0,15,45); } else if (this.weapon==='sniper') this.spawnBullet(angle, 0, 100, 60, 25); else if (this.weapon==='minigun') { this.spawnBullet(angle, (Math.random()-0.5)*0.4, 8, 3); screenShake=2; } else if (this.weapon==='snowball') this.spawnBullet(angle, 0, 10000, 30, 10, 'snowball'); } spawnBullet(angle, spread, dmg, cd, speed=BULLET_SPEED, type='normal') { const finalAngle = angle+spread; const vel = {x:Math.cos(finalAngle)*speed, y:Math.sin(finalAngle)*speed}; let r=4; if(typeof type!=='string') r=type; bullets.push(new Bullet(this.x, this.y, vel, false, dmg, r, typeof type==='string'?type:null)); this.cooldown=cd; } }
-        class Enemy extends Entity { constructor(x, y, type) { let r=15, hp=40, c='#FF3333', s=ENEMY_SPEED; if(type==='boss') { r=40; hp=600; c='#A020F0'; s=1.2; } if(currentMissionId===6) s*=1.4; if(currentMissionId===8) s*=1.2; super(x, y, r, c, hp); this.type=type; this.speed=s; } draw() { let a=0; if(player&&!player.dead) a=Math.atan2(player.y-this.y, player.x-this.x); ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(a); let ox=this.x; let oy=this.y; this.x=0; this.y=0; super.drawBase(); this.x=ox; this.y=oy; ctx.fillStyle=this.type==='boss'?'#4A004A':'#550000'; ctx.fillRect(this.radius-2, -(this.type==='boss'?5:3), this.type==='boss'?25:15, this.type==='boss'?10:6); ctx.restore(); this.drawHealthBar(); } update() { if (this.cooldown>0) this.cooldown--; const dist=Math.hypot(player.x-this.x, player.y-this.y); const angle=Math.atan2(player.y-this.y, player.x-this.x); if (currentMissionId===11) { if (dist>500) this.move(Math.cos(angle)*0.5, Math.sin(angle)*0.5); } else { if (dist > 150+this.radius) this.move(Math.cos(angle)*this.speed, Math.sin(angle)*this.speed); else if (dist < 100) this.move(-Math.cos(angle)*this.speed*0.5, -Math.sin(angle)*this.speed*0.5); } let shootDist = this.type==='boss'?600:400; let chance = this.type==='boss'?0.1:0.03; if(currentMissionId===11) chance=0.08; if (dist<shootDist && Math.random()<chance) { const shotA = angle + (Math.random()-0.5)*(currentMissionId===11?0.05:0.3); let dmg=10, bSpeed=BULLET_SPEED, bRad=4; if(this.type==='boss'){dmg=25;bRad=8;} if(currentMissionId===11){dmg=30;bSpeed=20;} bullets.push(new Bullet(this.x, this.y, {x:Math.cos(shotA)*bSpeed, y:Math.sin(shotA)*bSpeed}, true, dmg, bRad)); this.cooldown=40; } } takeDamage(amount) { this.hp-=amount; if(this.hp<=0 && !this.dead) { this.dead=true; createParticles(this.x, this.y, this.color); playerStats.totalKills++; addPlayerXp(this.type==='boss'?100:10); let r=Math.random(); let gC=(currentMissionId===8||currentMissionId===7)?0.4:0.15; if(r<0.3) drops.push(new DropItem(this.x+10, this.y, 'coin')); if(r<gC) drops.push(new DropItem(this.x, this.y, 'grenade')); else if(r<gC+0.3) drops.push(new DropItem(this.x, this.y, 'medkit')); } } }
-        class Bullet { constructor(x, y, vel, isEnemy, dmg, radius=4, specialType=null) { this.x=x; this.y=y; this.vel=vel; this.isEnemy=isEnemy; this.dmg=dmg; this.radius=radius; this.specialType=specialType; if(specialType==='snowball') this.radius=8; this.dead=false; } update() { this.x+=this.vel.x; this.y+=this.vel.y; if (!(activeCheats.wallbang && !this.isEnemy)) { for(let obs of obstacles) if(this.x>obs.x && this.x<obs.x+obs.size && this.y>obs.y && this.y<obs.y+obs.size) { this.dead=true; if(this.specialType==='snowball') this.explode(); else createParticles(this.x,this.y,'#888'); return; } } if(this.x<0||this.x>canvas.width||this.y<0||this.y>canvas.height) this.dead=true; } draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2); if(this.specialType==='snowball') { ctx.fillStyle='#FFF'; ctx.shadowBlur=10; ctx.shadowColor='white'; } else { ctx.fillStyle=this.isEnemy?(this.radius>4?'#A020F0':'orange'):'#FFFF00'; ctx.shadowBlur=0; } ctx.fill(); ctx.shadowBlur=0; } explode() { createExplosion(this.x, this.y); enemies.forEach(en => { if(Math.hypot(en.x-this.x, en.y-this.y)<100) en.takeDamage(10000); }); } }
-        function createParticles(x, y, c) { for(let i=0; i<5; i++) particles.push({x,y,color:c, vx:(Math.random()-0.5)*7, vy:(Math.random()-0.5)*7, life:15}); }
-        function createExplosion(x, y) { for(let i=0; i<30; i++) particles.push({x,y,color:i%2===0?'orange':'red', vx:(Math.random()-0.5)*15, vy:(Math.random()-0.5)*15, life:30}); particles.push({x,y,color:'rgba(255,255,255,0.8)', vx:0, vy:0, life:15, radius:100, isShockwave:true}); }
-
+        // --- ОНОВЛЕНА ФУНКЦІЯ ВІДОБРАЖЕННЯ МАГАЗИНУ (СУПЕР КОМПАКТНА) ---
         const pCtx = document.getElementById('previewCanvas').getContext('2d');
         function openShop() { document.getElementById('menu-overlay').style.display='none'; document.getElementById('shop-screen').style.display='flex'; document.getElementById('shop-coins').innerText=playerStats.coins; document.getElementById('shop-level').innerText=playerStats.level; renderShopItems(); updatePreview(); }
         function closeShop() { saveGame(); document.getElementById('shop-screen').style.display='none'; document.getElementById('menu-overlay').style.display='flex'; }
-        function renderShopItems() { const al = document.getElementById('accessories-list'); al.innerHTML=''; shopItems.outfits.forEach(i => { let div=document.createElement('div'); div.className='shop-item'; let owned=playerStats.unlockedOutfits.includes(i.id), equipped=playerStats.currentOutfit===i.id; div.innerHTML=`<span>${i.name}</span><button class="buy-btn ${equipped?'equipped':(owned?'owned':'')}" onclick="handleShopAction('outfit','${i.id}',${i.price})">${owned?(equipped?'V':'Взяти'):i.price+'$'}</button>`; al.appendChild(div); }); const wl = document.getElementById('weapons-list'); wl.innerHTML=''; shopItems.weapons.forEach(i => { let div=document.createElement('div'); div.className='shop-item'; let owned=playerStats.unlockedWeapons.includes(i.id), locked=i.levelReq && playerStats.level < i.levelReq; div.innerHTML=`<span>${i.name}</span><button class="buy-btn ${owned?'owned':''}" onclick="handleShopAction('weapon','${i.id}',${i.price})" ${owned||locked?'disabled':''}>${owned?'Є':(locked?'LVL'+i.levelReq:i.price+'$')}</button>`; wl.appendChild(div); }); }
+        function renderShopItems() {
+            const al = document.getElementById('accessories-list'); al.innerHTML='';
+            shopItems.outfits.forEach(i => {
+                let div=document.createElement('div'); div.className='shop-item';
+                let owned=playerStats.unlockedOutfits.includes(i.id), equipped=playerStats.currentOutfit===i.id;
+                // Компактний текст кнопок
+                let btnText = owned ? (equipped ? 'V' : 'Взяти') : (i.price === 0 ? '0$' : i.price+'$');
+                div.innerHTML=`<span>${i.name}</span><button class="buy-btn ${equipped?'equipped':(owned?'owned':'')}" onclick="handleShopAction('outfit','${i.id}',${i.price})">${btnText}</button>`;
+                al.appendChild(div);
+            });
+            const wl = document.getElementById('weapons-list'); wl.innerHTML='';
+            shopItems.weapons.forEach(i => {
+                let div=document.createElement('div'); div.className='shop-item';
+                let owned=playerStats.unlockedWeapons.includes(i.id), locked=i.levelReq && playerStats.level < i.levelReq;
+                // Компактний текст кнопок
+                let btnText = owned ? 'V' : (locked ? 'L'+i.levelReq : i.price+'$');
+                div.innerHTML=`<span>${i.name}</span><button class="buy-btn ${owned?'owned':''}" onclick="handleShopAction('weapon','${i.id}',${i.price})" ${owned||locked?'disabled':''}>${btnText}</button>`;
+                wl.appendChild(div);
+            });
+        }
         function handleShopAction(type, id, price) { if(type==='outfit') { if(playerStats.unlockedOutfits.includes(id)) playerStats.currentOutfit=id; else if(playerStats.coins>=price) { playerStats.coins-=price; playerStats.unlockedOutfits.push(id); playerStats.currentOutfit=id; } } else if(type==='weapon' && !playerStats.unlockedWeapons.includes(id)) { if(playerStats.coins>=price) { playerStats.coins-=price; playerStats.unlockedWeapons.push(id); } } updatePreview(); renderShopItems(); document.getElementById('shop-coins').innerText=playerStats.coins; }
         function updatePreview() { let c=document.getElementById('colorPicker').value; playerStats.color=c; pCtx.clearRect(0,0,150,150); pCtx.save(); pCtx.translate(75,75); pCtx.scale(2.5,2.5); pCtx.beginPath(); pCtx.arc(0,0,15,0,Math.PI*2); pCtx.fillStyle=c; pCtx.fill(); pCtx.strokeStyle='#000'; pCtx.lineWidth=1; pCtx.stroke(); if (playerStats.currentOutfit === 'santa_hat') { pCtx.fillStyle='#D40000'; pCtx.beginPath(); pCtx.moveTo(-15,-5); pCtx.lineTo(15,-5); pCtx.lineTo(0,-28); pCtx.fill(); pCtx.fillStyle='#FFF'; pCtx.fillRect(-16,-5,32,6); pCtx.beginPath(); pCtx.arc(0,-28,5,0,Math.PI*2); pCtx.fill(); } else if (playerStats.currentOutfit === 'helmet') { pCtx.fillStyle='#334400'; pCtx.beginPath(); pCtx.arc(0,0,16,Math.PI,0); pCtx.fill(); pCtx.fillStyle='#223300'; pCtx.fillRect(-15,-5,30,5); } else if (playerStats.currentOutfit === 'vest') { pCtx.fillStyle='#2E3B22'; pCtx.fillRect(-14,-14,28,28); pCtx.fillStyle='#4A5D3A'; pCtx.fillRect(-10,2,8,10); pCtx.fillRect(2,2,8,10); } else if (playerStats.currentOutfit === 'cap') { pCtx.fillStyle='#C2B280'; pCtx.beginPath(); pCtx.arc(0,0,15,Math.PI*0.8,Math.PI*3.2); pCtx.fill(); pCtx.fillStyle='#A09165'; pCtx.fillRect(13,-13,14,26); } pCtx.fillStyle='#000'; pCtx.fillRect(10,-3,15,6); pCtx.restore(); }
 
@@ -461,7 +476,30 @@
                 document.getElementById('mobile-controls').style.display='none';
                 document.getElementById('weapon-info').style.display='block';
             }
+            // Перемальовуємо магазин з новими стилями
+            if(document.getElementById('shop-screen').style.display === 'flex') {
+                renderShopItems();
+            }
         }
+
+        const PLAYER_SPEED = 4.5; const BULLET_SPEED = 14; const ENEMY_SPEED = 1.5; 
+        let controlMode = 'PC'; let gameState = 'PLATFORM_SELECT'; let currentMissionId = 0;
+        let gameTime = 0; let enemiesKilled = 0; let grenadesKilled = 0; let bossSpawned = false;
+        let zoneTimer = 0; let captureZone = { x: 0, y: 0, radius: 100 }; let screenShake = 0;
+        let obstacles = []; let bullets = []; let enemies = []; let particles = []; let drops = []; let thrownGrenades = []; let decorations = []; let snowflakes = []; let player;
+        let keys = {}; let mouse = { x: 0, y: 0, down: false };
+        let joystickLeft = { x: 0, y: 0, active: false, id: null }; let joystickRight = { x: 0, y: 0, active: false, id: null }; let lastAimAngle = 0;
+        for(let i=0; i<60; i++) snowflakes.push({ x: Math.random()*window.innerWidth, y: Math.random()*window.innerHeight, r: Math.random()*2+0.5, s: Math.random()*1+0.2 });
+
+        class DropItem { constructor(x, y, type) { this.x = x; this.y = y; this.type = type; this.size = 20; this.bobOffset = Math.random()*Math.PI*2; } draw() { let bob = Math.sin(gameTime * 5 + this.bobOffset) * 3; let Y = this.y + bob; if (this.type === 'medkit') { ctx.fillStyle = '#00CC00'; ctx.fillRect(this.x-10, Y-10, 20, 20); ctx.fillStyle = '#FFF'; ctx.fillRect(this.x-3, Y-8, 6, 16); ctx.fillRect(this.x-8, Y-3, 16, 6); } else if (this.type === 'grenade') { ctx.fillStyle = '#FFA500'; ctx.fillRect(this.x-10, Y-10, 20, 20); ctx.fillStyle='#000'; ctx.font="16px Arial"; ctx.fillText("💣", this.x-9, Y+6); } else if (this.type === 'coin') { ctx.fillStyle='#FFFF00'; ctx.beginPath(); ctx.arc(this.x, Y, 10, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle='#DAA520'; ctx.lineWidth=2; ctx.stroke(); ctx.fillStyle='#000'; ctx.font="bold 14px Arial"; ctx.fillText("$", this.x-4, Y+5); } } }
+        class GrenadeObj { constructor(x, y, tx, ty) { this.x = x; this.y = y; this.timer = 60; this.dead = false; const angle = Math.atan2(ty - y, tx - x); const dist = Math.hypot(tx - x, ty - y); const speed = Math.min(dist / 20, 10); this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed; this.flyTime = Math.floor(dist / speed); } update() { if (this.flyTime > 0) { this.x += this.vx; this.y += this.vy; this.flyTime--; } this.timer--; if (this.timer <= 0) { this.explode(); this.dead = true; } } explode() { createExplosion(this.x, this.y); screenShake = 15; enemies.forEach(en => { if (Math.hypot(en.x - this.x, en.y - this.y) < 120) { en.takeDamage(150); if (en.hp <= 0) grenadesKilled++; } }); } draw() { ctx.beginPath(); ctx.arc(this.x, this.y, 6, 0, Math.PI*2); ctx.fillStyle = Math.floor(this.timer/5)%2===0 ? 'red' : 'yellow'; ctx.fill(); ctx.strokeStyle='#000'; ctx.stroke(); } }
+        class Rect { constructor(x, y, size) { this.x = x; this.y = y; this.size = size; } draw() { ctx.fillStyle = '#556'; ctx.fillRect(this.x, this.y, this.size, this.size); ctx.fillStyle = '#EEF'; ctx.beginPath(); ctx.moveTo(this.x-2, this.y); ctx.lineTo(this.x+this.size+2, this.y); ctx.lineTo(this.x+this.size+2, this.y+15); for(let i=0; i<this.size; i+=10) ctx.arc(this.x+this.size-i, this.y+15, 5, 0, Math.PI); ctx.lineTo(this.x-2, this.y+15); ctx.fill(); ctx.strokeStyle='#223'; ctx.lineWidth=2; ctx.strokeRect(this.x, this.y, this.size, this.size); } }
+        class Entity { constructor(x, y, radius, color, hp) { this.x=x; this.y=y; this.radius=radius; this.color=color; this.hp=hp; this.maxHp=hp; this.dead=false; this.cooldown=0; } drawBase() { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2); ctx.fillStyle=this.color; ctx.fill(); ctx.strokeStyle='#000'; ctx.lineWidth=2; ctx.stroke(); } drawHealthBar() { if (this.hp < this.maxHp || this instanceof Player) { ctx.save(); ctx.fillStyle = '#FFFFFF'; ctx.font = "bold 12px Courier New"; ctx.textAlign = "center"; ctx.shadowColor = "black"; ctx.shadowBlur = 4; ctx.fillText(Math.ceil(this.hp), this.x, this.y - this.radius - 15); ctx.restore(); } if (this.hp < this.maxHp) { let w = this.radius * 2; ctx.fillStyle='red'; ctx.fillRect(this.x-w/2, this.y-this.radius-10, w, 4); ctx.fillStyle='#00FF00'; ctx.fillRect(this.x-w/2, this.y-this.radius-10, w*(this.hp/this.maxHp), 4); } } move(dx, dy) { if (!this.checkWallCollision(this.x+dx, this.y)) this.x+=dx; if (!this.checkWallCollision(this.x, this.y+dy)) this.y+=dy; this.x=Math.max(this.radius, Math.min(canvas.width-this.radius, this.x)); this.y=Math.max(this.radius, Math.min(canvas.height-this.radius, this.y)); } checkWallCollision(x, y) { for (let obs of obstacles) { let cx=Math.max(obs.x, Math.min(x, obs.x+obs.size)); let cy=Math.max(obs.y, Math.min(y, obs.y+obs.size)); if ((x-cx)**2 + (y-cy)**2 < this.radius**2) return true; } return false; } }
+        class Player extends Entity { constructor(x, y) { super(x, y, 15, playerStats.color, 100); this.weapon='pistol'; this.grenades=3; this.grenadeCooldown=0; this.angle=0; this.muzzleTimer=0; } draw() { ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle); ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI*2); ctx.fillStyle=playerStats.color; ctx.fill(); ctx.strokeStyle='#000'; ctx.lineWidth=2; ctx.stroke(); if (playerStats.currentOutfit === 'santa_hat') { ctx.fillStyle='#D40000'; ctx.beginPath(); ctx.moveTo(-15,-5); ctx.lineTo(15,-5); ctx.lineTo(0,-28); ctx.fill(); ctx.fillStyle='#FFF'; ctx.fillRect(-16,-5,32,6); ctx.beginPath(); ctx.arc(0,-28,5,0,Math.PI*2); ctx.fill(); } else if (playerStats.currentOutfit === 'helmet') { ctx.fillStyle='#334400'; ctx.beginPath(); ctx.arc(0,0,16,Math.PI,0); ctx.fill(); ctx.fillStyle='#223300'; ctx.fillRect(-15,-5,30,5); } else if (playerStats.currentOutfit === 'vest') { ctx.fillStyle='#2E3B22'; ctx.fillRect(-14,-14,28,28); ctx.fillStyle='#4A5D3A'; ctx.fillRect(-10,2,8,10); ctx.fillRect(2,2,8,10); } else if (playerStats.currentOutfit === 'cap') { ctx.fillStyle='#C2B280'; ctx.beginPath(); ctx.arc(0,0,15,Math.PI*0.8,Math.PI*3.2); ctx.fill(); ctx.fillStyle='#A09165'; ctx.fillRect(13,-13,14,26); } if (this.weapon === 'snowball') { ctx.fillStyle='#00FFFF'; ctx.fillRect(10,-5,20,10); ctx.fillStyle='#FFF'; ctx.fillRect(12,-7,10,14); ctx.beginPath(); ctx.arc(10,0,5,0,Math.PI*2); ctx.fillStyle='#88FFFF'; ctx.fill(); } else { ctx.fillStyle='#000'; ctx.fillRect(10,-3,15,6); } if (this.muzzleTimer > 0) { ctx.beginPath(); ctx.arc(this.weapon==='snowball'?35:28, 0, 8+Math.random()*5, 0, Math.PI*2); ctx.fillStyle=this.weapon==='snowball'?`rgba(200,255,255,${this.muzzleTimer/3})`:`rgba(255,255,0,${this.muzzleTimer/3})`; ctx.fill(); this.muzzleTimer--; } ctx.restore(); } update() { if (this.cooldown > 0) this.cooldown--; if (this.grenadeCooldown > 0) this.grenadeCooldown--; let dx=0, dy=0; if (activeCheats.aim && enemies.length > 0) { let closest=null, minDist=Infinity; enemies.forEach(e=>{ let d=Math.hypot(e.x-this.x, e.y-this.y); if(d<minDist){minDist=d; closest=e;} }); if(closest) { this.angle=Math.atan2(closest.y-this.y, closest.x-this.x); lastAimAngle=this.angle; } } if (activeCheats.autoloot && drops.length > 0) { this.x=drops[0].x; this.y=drops[0].y; } if (controlMode === 'PC') { if (keys['Digit1']) this.trySetWeapon('pistol'); if (keys['Digit2']) this.trySetWeapon('rifle'); if (keys['Digit3']) this.trySetWeapon('shotgun'); if (keys['Digit4']) this.trySetWeapon('sniper'); if (keys['Digit5']) this.trySetWeapon('minigun'); if (keys['Digit6']) this.trySetWeapon('snowball'); if (keys['Space']) this.throwGrenade(mouse.x, mouse.y); if (keys['KeyW'] || keys['ArrowUp']) dy = -PLAYER_SPEED; if (keys['KeyS'] || keys['ArrowDown']) dy = PLAYER_SPEED; if (keys['KeyA'] || keys['ArrowLeft']) dx = -PLAYER_SPEED; if (keys['KeyD'] || keys['ArrowRight']) dx = PLAYER_SPEED; if (dx && dy) { dx *= 0.707; dy *= 0.707; } if (!activeCheats.aim) { this.angle = Math.atan2(mouse.y-this.y, mouse.x-this.x); lastAimAngle=this.angle; } if (mouse.down) this.shootInput(this.angle); } else { if (joystickLeft.active) { dx = joystickLeft.x * PLAYER_SPEED; dy = joystickLeft.y * PLAYER_SPEED; } if (joystickRight.active) { if (!activeCheats.aim) { this.angle = Math.atan2(joystickRight.y, joystickRight.x); lastAimAngle=this.angle; } this.shootInput(this.angle); } else if ((dx !== 0 || dy !== 0) && !activeCheats.aim) { this.angle = Math.atan2(dy, dx); } } this.move(dx, dy); } trySetWeapon(wpn) { if (wpn === 'minigun' && playerStats.level < 5) return; if (playerStats.unlockedWeapons.includes(wpn)) { this.weapon = wpn; updateUI(); } } throwGrenade(tx, ty) { if (this.grenades > 0 && this.grenadeCooldown <= 0) { this.grenades--; this.grenadeCooldown=60; thrownGrenades.push(new GrenadeObj(this.x, this.y, tx, ty)); updateUI(); } } shootInput(angle) { if (this.cooldown > 0) return; this.muzzleTimer=3; if (this.weapon==='shotgun'||this.weapon==='sniper') screenShake=5; if (this.weapon==='pistol') this.spawnBullet(angle, 0, 20, 20); else if (this.weapon==='rifle') this.spawnBullet(angle, (Math.random()-0.5)*0.2, 10, 6); else if (this.weapon==='shotgun') { this.spawnBullet(angle,0,15,45); this.spawnBullet(angle+0.15,0,15,45); this.spawnBullet(angle-0.15,0,15,45); } else if (this.weapon==='sniper') this.spawnBullet(angle, 0, 100, 60, 25); else if (this.weapon==='minigun') { this.spawnBullet(angle, (Math.random()-0.5)*0.4, 8, 3); screenShake=2; } else if (this.weapon==='snowball') this.spawnBullet(angle, 0, 10000, 30, 10, 'snowball'); } spawnBullet(angle, spread, dmg, cd, speed=BULLET_SPEED, type='normal') { const finalAngle = angle+spread; const vel = {x:Math.cos(finalAngle)*speed, y:Math.sin(finalAngle)*speed}; let r=4; if(typeof type!=='string') r=type; bullets.push(new Bullet(this.x, this.y, vel, false, dmg, r, typeof type==='string'?type:null)); this.cooldown=cd; } }
+        class Enemy extends Entity { constructor(x, y, type) { let r=15, hp=40, c='#FF3333', s=ENEMY_SPEED; if(type==='boss') { r=40; hp=600; c='#A020F0'; s=1.2; } if(currentMissionId===6) s*=1.4; if(currentMissionId===8) s*=1.2; super(x, y, r, c, hp); this.type=type; this.speed=s; } draw() { let a=0; if(player&&!player.dead) a=Math.atan2(player.y-this.y, player.x-this.x); ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(a); let ox=this.x; let oy=this.y; this.x=0; this.y=0; super.drawBase(); this.x=ox; this.y=oy; ctx.fillStyle=this.type==='boss'?'#4A004A':'#550000'; ctx.fillRect(this.radius-2, -(this.type==='boss'?5:3), this.type==='boss'?25:15, this.type==='boss'?10:6); ctx.restore(); this.drawHealthBar(); } update() { if (this.cooldown>0) this.cooldown--; const dist=Math.hypot(player.x-this.x, player.y-this.y); const angle=Math.atan2(player.y-this.y, player.x-this.x); if (currentMissionId===11) { if (dist>500) this.move(Math.cos(angle)*0.5, Math.sin(angle)*0.5); } else { if (dist > 150+this.radius) this.move(Math.cos(angle)*this.speed, Math.sin(angle)*this.speed); else if (dist < 100) this.move(-Math.cos(angle)*this.speed*0.5, -Math.sin(angle)*this.speed*0.5); } let shootDist = this.type==='boss'?600:400; let chance = this.type==='boss'?0.1:0.03; if(currentMissionId===11) chance=0.08; if (dist<shootDist && Math.random()<chance) { const shotA = angle + (Math.random()-0.5)*(currentMissionId===11?0.05:0.3); let dmg=10, bSpeed=BULLET_SPEED, bRad=4; if(this.type==='boss'){dmg=25;bRad=8;} if(currentMissionId===11){dmg=30;bSpeed=20;} bullets.push(new Bullet(this.x, this.y, {x:Math.cos(shotA)*bSpeed, y:Math.sin(shotA)*bSpeed}, true, dmg, bRad)); this.cooldown=40; } } takeDamage(amount) { this.hp-=amount; if(this.hp<=0 && !this.dead) { this.dead=true; createParticles(this.x, this.y, this.color); playerStats.totalKills++; addPlayerXp(this.type==='boss'?100:10); let r=Math.random(); let gC=(currentMissionId===8||currentMissionId===7)?0.4:0.15; if(r<0.3) drops.push(new DropItem(this.x+10, this.y, 'coin')); if(r<gC) drops.push(new DropItem(this.x, this.y, 'grenade')); else if(r<gC+0.3) drops.push(new DropItem(this.x, this.y, 'medkit')); } } }
+        class Bullet { constructor(x, y, vel, isEnemy, dmg, radius=4, specialType=null) { this.x=x; this.y=y; this.vel=vel; this.isEnemy=isEnemy; this.dmg=dmg; this.radius=radius; this.specialType=specialType; if(specialType==='snowball') this.radius=8; this.dead=false; } update() { this.x+=this.vel.x; this.y+=this.vel.y; if (!(activeCheats.wallbang && !this.isEnemy)) { for(let obs of obstacles) if(this.x>obs.x && this.x<obs.x+obs.size && this.y>obs.y && this.y<obs.y+obs.size) { this.dead=true; if(this.specialType==='snowball') this.explode(); else createParticles(this.x,this.y,'#888'); return; } } if(this.x<0||this.x>canvas.width||this.y<0||this.y>canvas.height) this.dead=true; } draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2); if(this.specialType==='snowball') { ctx.fillStyle='#FFF'; ctx.shadowBlur=10; ctx.shadowColor='white'; } else { ctx.fillStyle=this.isEnemy?(this.radius>4?'#A020F0':'orange'):'#FFFF00'; ctx.shadowBlur=0; } ctx.fill(); ctx.shadowBlur=0; } explode() { createExplosion(this.x, this.y); enemies.forEach(en => { if(Math.hypot(en.x-this.x, en.y-this.y)<100) en.takeDamage(10000); }); } }
+        function createParticles(x, y, c) { for(let i=0; i<5; i++) particles.push({x,y,color:c, vx:(Math.random()-0.5)*7, vy:(Math.random()-0.5)*7, life:15}); }
+        function createExplosion(x, y) { for(let i=0; i<30; i++) particles.push({x,y,color:i%2===0?'orange':'red', vx:(Math.random()-0.5)*15, vy:(Math.random()-0.5)*15, life:30}); particles.push({x,y,color:'rgba(255,255,255,0.8)', vx:0, vy:0, life:15, radius:100, isShockwave:true}); }
 
         const wpnNames = {'pistol':'Пістолет', 'rifle':'Автомат', 'shotgun':'Дробовик', 'sniper':'Снайпер', 'minigun':'Кулемет', 'snowball':'Снігомет'};
         const wpnKeys = ['pistol', 'rifle', 'shotgun', 'sniper', 'minigun', 'snowball'];
