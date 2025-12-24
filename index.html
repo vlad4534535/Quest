@@ -1,527 +1,2551 @@
 <!DOCTYPE html>
+
 <html lang="uk">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tactical Shooter: SHOP FIX</title>
+
+    <title>Tactical Shooter: NEW YEAR1.6</title>
+
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+
     <style>
+
         body {
-            margin: 0;
-            overflow: hidden;
-            background-color: #1a1a2e;
+
+            margin: 0; overflow: hidden; background-color: #1a1a2e;
+
             font-family: 'Courier New', Courier, monospace;
-            color: white;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: none;
-        }
-        canvas { display: block; }
-        
-        /* --- СТАНДАРТНИЙ UI (ДЛЯ ПК) --- */
-        #game-ui {
-            display: none;
-            position: absolute;
-            top: 10px; left: 10px;
-            pointer-events: none;
-            width: 100%;
-            box-sizing: border-box;
-            padding-right: 20px;
-            z-index: 5;
-        }
-        #top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-        .stat-box {
-            background: rgba(0,0,0,0.6);
-            padding: 5px 10px;
-            border-radius: 5px;
-            margin-bottom: 5px;
-            font-size: 16px;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        #mission-text {
-            font-size: 18px; font-weight: bold; color: #77DDFF;
-            text-shadow: 1px 1px 0 #000;
-        }
-        #weapon-info { color: #aaa; }
-        #grenade-counter { color: #FFA500; font-weight: bold; }
-        #coin-counter { color: #FFFF00; font-weight: bold; }
-        
-        .bar-container {
-            margin-top: 5px; width: 200px; height: 15px;
-            background: #444; border: 2px solid #fff;
-            position: relative;
-        }
-        #health-fill {
-            width: 100%; height: 100%;
-            background: #00FF00; transition: width 0.1s;
-        }
-        #xp-bar-container {
-            margin-top: 5px; height: 10px; border-color: #0077FF;
-        }
-        #xp-fill {
-            width: 0%; height: 100%;
-            background: #0077FF; transition: width 0.2s;
-        }
-        #level-text {
-            position: absolute; top: -20px; left: 0;
-            font-size: 14px; color: #0077FF; font-weight: bold;
+
+            color: white; user-select: none; -webkit-user-select: none; touch-action: none;
+
         }
 
-        /* --- ЗАГАЛЬНІ ЕЛЕМЕНТИ МЕНЮ --- */
-        .overlay {
-            position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(10, 20, 40, 0.95);
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center; 
-            z-index: 20;
-        }
-        h1 { margin-bottom: 5px; font-size: 28px; color: #00AAFF; text-align: center; text-transform: uppercase; text-shadow: 0 0 10px white; }
-        h2 { margin-bottom: 10px; font-size: 16px; color: #aaa; }
-        h3 { margin: 5px 0; font-size: 18px; color: #aaa; text-align: center; }
-        .menu-stats { color: #FFFF00; margin-bottom: 20px; font-size: 14px; border: 1px solid #555; padding: 10px; text-align: center; }
+        canvas { display: block; }
+
         
-        .mission-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;
-            max-height: 60vh; overflow-y: auto;
+
+        /* --- CHEAT UI --- */
+
+        #cheat-toggle-btn {
+
+            display: none; position: absolute; top: 100px; left: 50px; width: 50px; height: 50px;
+
+            background: white; border-radius: 50%; z-index: 1000;
+
+            justify-content: center; align-items: center; font-size: 30px; cursor: pointer;
+
+            box-shadow: 0 0 10px white; touch-action: none;
+
         }
+
+        #cheat-menu {
+
+            display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+
+            background: rgba(0, 0, 0, 0.9); border: 2px solid white; padding: 20px; z-index: 1001;
+
+            text-align: center; border-radius: 10px; width: 250px;
+
+        }
+
+        .cheat-option {
+
+            margin: 10px 0; display: flex; justify-content: space-between; align-items: center;
+
+            font-size: 14px; color: white;
+
+        }
+
+        .cheat-checkbox { transform: scale(1.5); }
+
+        
+
+        /* --- UI ELEMENTS --- */
+
+        #game-ui {
+
+            display: none; position: absolute; top: 10px; left: 10px; pointer-events: none;
+
+            width: 100%; box-sizing: border-box; padding-right: 20px; z-index: 5;
+
+        }
+
+        #exit-mission-btn {
+
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+
+            background: rgba(0,0,0,0.6); border: 1px solid #FF3333; color: #FF3333;
+
+            font-family: inherit; cursor: pointer; pointer-events: auto;
+
+            padding: 5px 15px; font-weight: bold; font-size: 12px; z-index: 100;
+
+        }
+
+        #exit-mission-btn:hover { background: #FF3333; color: white; }
+
+
+
+        #top-bar { display: flex; justify-content: space-between; align-items: flex-start; }
+
+        .stat-box {
+
+            background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 5px;
+
+            margin-bottom: 5px; font-size: 16px; border: 1px solid rgba(255,255,255,0.2);
+
+        }
+
+        #mission-text { font-size: 18px; font-weight: bold; color: #77DDFF; text-shadow: 1px 1px 0 #000; }
+
+        #weapon-info { color: #aaa; }
+
+        #grenade-counter { color: #FFA500; font-weight: bold; }
+
+        #coin-counter { color: #FFFF00; font-weight: bold; }
+
+        
+
+        .bar-container {
+
+            margin-top: 5px; width: 200px; height: 15px; background: #444; border: 2px solid #fff; position: relative;
+
+        }
+
+        #health-fill { width: 100%; height: 100%; background: #00FF00; transition: width 0.1s; }
+
+        #xp-bar-container { margin-top: 5px; height: 10px; border-color: #0077FF; }
+
+        #xp-fill { width: 0%; height: 100%; background: #0077FF; transition: width 0.2s; }
+
+        #level-text { position: absolute; top: -20px; left: 0; font-size: 14px; color: #0077FF; font-weight: bold; }
+
+
+
+        .overlay {
+
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+
+            background: rgba(10, 20, 40, 0.95); display: flex; flex-direction: column;
+
+            justify-content: center; align-items: center; z-index: 20;
+
+        }
+
+        h1 { margin-bottom: 5px; font-size: 28px; color: #00AAFF; text-align: center; text-transform: uppercase; text-shadow: 0 0 10px white; }
+
+        h2 { margin-bottom: 10px; font-size: 16px; color: #aaa; }
+
+        h3 { margin: 5px 0; font-size: 18px; color: #aaa; text-align: center; }
+
+        .menu-stats { color: #FFFF00; margin-bottom: 20px; font-size: 14px; border: 1px solid #555; padding: 10px; text-align: center; }
+
+        
+
+        .mission-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 10px; max-height: 50vh; overflow-y: auto; width: 95%; max-width: 600px;}
 
         .btn {
-            background: #222; color: white;
-            border: 2px solid #0077FF; padding: 10px;
-            font-size: 12px; cursor: pointer; width: 160px;
-            text-align: center; font-family: inherit; margin: 2px;
+
+            background: #222; color: white; border: 2px solid #0077FF; padding: 10px;
+
+            font-size: 12px; cursor: pointer; text-align: center; font-family: inherit; margin: 2px;
+
+            display: flex; align-items: center; justify-content: center; transition: transform 0.1s;
+
         }
-        .btn:hover { background: #0077FF; color: black; }
+
+        .btn:hover { background: #0077FF; color: black; transform: scale(1.02); }
+
         .boss-btn { border-color: #A020F0; color: #E0E0E0; }
+
         .hard-btn { border-color: #FF3333; color: #FFAAAA; }
+
         .special-btn { border-color: #00FFCC; color: #AAFFFF; }
+
         .shop-btn { border-color: #FFFF00; color: #FFFFAA; width: 340px; margin-top: 10px; font-size: 16px; font-weight: bold;}
 
-        /* МАГАЗИН (ПК версія) */
-        #shop-screen { display: none; }
-        .shop-container {
-            display: flex; gap: 20px; width: 95%; max-width: 800px; justify-content: center; flex-wrap: wrap;
-        }
-        .shop-column {
-            background: #223; padding: 15px; border: 2px solid #558; width: 280px;
-        }
-        .shop-item {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px;
-        }
-        .buy-btn {
-            background: #222; border: 1px solid #FFFF00; color: #FFFF00; padding: 5px 10px; cursor: pointer; font-size: 10px;
-        }
+        .skill-btn { border-color: #FF00AA; color: #FFCCFF; width: 340px; font-size: 16px; font-weight: bold;}
+
+        .editor-btn { border-color: #00FF00; color: #AAFFAA; width: 340px; font-size: 14px; }
+
+        .multi-btn { border-color: #FF00FF; color: #FFAAFF; width: 340px; font-size: 14px; font-weight: bold; }
+
+        .menu-wide-btn { width: 340px; margin-top:5px; }
+
+
+
+        /* SHOP & SKILLS */
+
+        #shop-screen, #skills-screen { display: none; }
+
+        .shop-container { display: flex; gap: 20px; width: 95%; max-width: 1000px; justify-content: center; flex-wrap: wrap; }
+
+        .shop-column { background: #223; padding: 15px; border: 2px solid #558; width: 200px; }
+
+        .shop-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px; }
+
+        .buy-btn { background: #222; border: 1px solid #FFFF00; color: #FFFF00; padding: 5px 10px; cursor: pointer; font-size: 10px; }
+
         .buy-btn.owned { background: #004400; border-color: #00FF00; color: white; cursor: default; }
+
         .buy-btn.equipped { background: #00FF00; color: black; font-weight: bold; }
+
         .buy-btn:disabled { opacity: 0.5; cursor: not-allowed; border-color: #555; color: #555; }
+
+        .preview-area { display: flex; flex-direction: column; align-items: center; margin-bottom: 15px; }
+
         
-        .preview-area {
-            display: flex; flex-direction: column; align-items: center; margin-bottom: 15px;
-        }
 
-        /* ПРОМОКОДИ */
-        .promo-container {
-            margin-top: 20px; padding: 10px; border-top: 2px dashed #555; width: 100%; text-align: center; box-sizing: border-box;
-        }
-        #promo-input {
-            background: #111; border: 1px solid #0077FF; color: white; padding: 5px; width: 150px; font-family: inherit; text-transform: uppercase;
-        }
-        #promo-btn {
-            background: #0077FF; color: white; border: none; padding: 5px 10px; cursor: pointer; font-family: inherit; margin-left: 5px;
-        }
+        .promo-container { margin-top: 20px; padding: 10px; border-top: 2px dashed #555; width: 100%; text-align: center; box-sizing: border-box; }
 
-        /* CHEAT UI */
-        #santa-cheat-btn {
-            display: none;
-            position: absolute; top: 10px; right: 10px;
-            width: 50px; height: 50px;
-            background: white; border-radius: 50%;
-            text-align: center; line-height: 50px; font-size: 30px;
-            cursor: pointer; z-index: 1000;
-            box-shadow: 0 0 10px cyan;
-            pointer-events: auto;
-            user-select: none;
-        }
-        #cheat-menu {
-            display: none;
-            position: absolute; top: 70px; right: 10px;
-            background: rgba(0,0,0,0.9); border: 2px solid white;
-            padding: 15px; width: 200px; z-index: 999;
-            pointer-events: auto;
-            border-radius: 10px;
-        }
-        .cheat-option {
-            margin-bottom: 15px; font-size: 16px; color: #00FF00; font-weight: bold;
-            display: flex; justify-content: space-between; align-items: center;
-        }
+        #promo-input { background: #111; border: 1px solid #0077FF; color: white; padding: 5px; width: 150px; font-family: inherit; text-transform: uppercase; }
 
-        /* --- МОБІЛЬНЕ КЕРУВАННЯ --- */
-        #mobile-controls {
-            display: none; position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%; pointer-events: none; z-index: 10;
-        }
-        .joystick-zone {
-            position: absolute; bottom: 40px;
-            width: 90px; height: 90px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%; pointer-events: auto;
-        }
+        #promo-btn { background: #0077FF; color: white; border: none; padding: 5px 10px; cursor: pointer; font-family: inherit; margin-left: 5px; }
+
+
+
+        #multiplayer-screen { display: none; z-index: 28; }
+
+        .server-box { background: #001122; border: 2px solid #FF00FF; padding: 20px; width: 90%; max-width: 500px; text-align: center; }
+
+        .server-status { color: #00FF00; margin: 10px 0; font-weight: bold; min-height: 20px;}
+
+        #my-peer-id { color: yellow; font-size: 20px; border: 1px dashed #555; padding: 5px; margin: 10px 0; user-select: text; -webkit-user-select: text; cursor: pointer;}
+
+        #join-peer-id { background: #333; color: white; padding: 10px; border: 1px solid #555; width: 200px; font-family: inherit; margin-top: 10px; }
+
+
+
+        #dev-menu { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #200020; border: 3px solid #FF00FF; padding: 20px; z-index: 2000; width: 300px; box-shadow: 0 0 20px #FF00FF; text-align: center; }
+
+        .dev-btn { width: 100%; margin: 5px 0; background: #400040; border: 1px solid #FF00FF; color: white; padding: 10px; cursor: pointer; }
+
+
+
+        #editor-ui { display: none; position: absolute; bottom: 10px; left: 10px; z-index: 50; display: flex; gap: 5px; }
+
+        .tool-btn { width: 50px; height: 50px; background: #333; border: 2px solid #fff; font-size: 20px; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+
+        .tool-btn.active { background: #0077FF; border-color: #00FFFF; }
+
+
+
+        #settings-screen { display: none; z-index: 25; }
+
+        .settings-box { background: #111; border: 2px solid #0077FF; padding: 20px; text-align: center; }
+
+
+
+        #hud-edit-overlay { display: none; position: absolute; top:0; left:0; width:100%; height:100%; z-index: 40; background: rgba(0,0,0,0.5); pointer-events: auto; }
+
+        .hud-draggable { position: absolute; touch-action: none; user-select: none; }
+
+        
+
+        #mobile-controls { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+
+        .joystick-zone { position: absolute; bottom: 40px; width: 90px; height: 90px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; pointer-events: auto; }
+
         #stick-left { left: 20px; }
+
         #stick-right { right: 20px; }
-        .joystick-knob {
-            position: absolute; top: 50%; left: 50%;
-            width: 40px; height: 40px;
-            background: rgba(0, 119, 255, 0.5);
-            border-radius: 50%;
-            transform: translate(-50%, -50%); pointer-events: none;
-        }
+
+        .joystick-knob { position: absolute; top: 50%; left: 50%; width: 40px; height: 40px; background: rgba(0, 119, 255, 0.5); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+
         #stick-right .joystick-knob { background: rgba(255, 51, 51, 0.5); }
-        
-        #mobile-grenade-btn {
-            position: absolute; bottom: 100px; right: 130px;
-            width: 50px; height: 50px;
-            background: rgba(255, 165, 0, 0.3); border: 2px solid #FFA500;
-            border-radius: 50%; color: #FFA500; font-size: 20px;
-            display: flex; justify-content: center; align-items: center;
-            pointer-events: auto; cursor: pointer;
-        }
+
+        #mobile-grenade-btn { position: absolute; bottom: 100px; right: 130px; width: 50px; height: 50px; background: rgba(255, 165, 0, 0.3); border: 2px solid #FFA500; border-radius: 50%; color: #FFA500; font-size: 20px; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; }
+
         #mobile-grenade-btn:active { background: #FFA500; color: black; }
-        
-        #weapon-bar {
-            position: absolute; bottom: 10px; left: 50%;
-            transform: translateX(-50%); display: flex; gap: 5px; pointer-events: auto;
-        }
-        .wpn-btn {
-            width: 35px; height: 35px; 
-            background: #333; border: 1px solid #666;
-            color: white; font-size: 9px; font-weight: bold;
-            display: flex; justify-content: center; align-items: center;
-            border-radius: 5px; font-family: inherit; cursor: pointer;
-        }
+
+        #weapon-bar { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; pointer-events: auto; }
+
+        .wpn-btn { width: 35px; height: 35px; background: #333; border: 1px solid #666; color: white; font-size: 9px; font-weight: bold; display: flex; justify-content: center; align-items: center; border-radius: 5px; font-family: inherit; cursor: pointer; }
+
         .wpn-btn.active { border-color: #0077FF; background: #004488; }
+
         .wpn-btn.locked { opacity: 0.3; border-color: #333; cursor: not-allowed; }
-        
-        #levelup-notify {
-            position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 40px; color: #FFD700; font-weight: bold; text-shadow: 0 0 10px orange;
-            pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 100;
-            text-align: center;
-        }
 
-        /* =============================================================== */
-        /* === СПЕЦІАЛЬНІ СТИЛІ ДЛЯ МОБІЛЬНОГО РЕЖИМУ (МАГАЗИН) === */
-        /* =============================================================== */
         
-        /* Основний UI гри */
+
+        #levelup-notify, #artifact-notify { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; color: #FFD700; font-weight: bold; text-shadow: 0 0 10px orange; pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 100; text-align: center; width: 100%; }
+
+        #artifact-notify { color: #00FFFF; text-shadow: 0 0 10px blue; font-size: 30px; }
+
+
+
+        /* MOBILE OVERRIDES */
+
         body.mobile-mode .bar-container { width: 100px; height: 8px; border-width: 1px; }
+
         body.mobile-mode #xp-bar-container { height: 4px; }
+
         body.mobile-mode .stat-box { font-size: 10px; padding: 2px 4px; margin-bottom: 2px; }
+
         body.mobile-mode #mission-text { font-size: 12px; }
+
         body.mobile-mode #level-text { font-size: 10px; top: -14px; }
+
         body.mobile-mode #game-ui { padding-right: 5px; top: 5px; left: 5px; }
-        
-        /* МАГАЗИН В МОБІЛЬНОМУ РЕЖИМІ */
-        body.mobile-mode .shop-container { flex-direction: column; align-items: center; padding-bottom: 60px; /* Місце для кнопки виходу */ }
-        body.mobile-mode .shop-column { width: 95%; margin-bottom: 5px; padding: 5px; box-sizing: border-box; }
-        body.mobile-mode h1 { font-size: 20px; }
-        body.mobile-mode h3 { font-size: 14px; }
-        body.mobile-mode .shop-item { font-size: 11px; padding-bottom: 2px; margin-bottom: 5px; }
-        /* Супер компактні кнопки для магазину */
-        body.mobile-mode .buy-btn { padding: 2px 5px; font-size: 10px; min-width: 30px; text-align: center; }
-        
-        /* Компактне прев'ю */
-        body.mobile-mode #previewCanvas { width: 100px; height: 100px; }
-        body.mobile-mode .preview-area { margin-bottom: 5px; }
 
-        /* Зручний промокод для пальців */
-        body.mobile-mode .promo-container { margin-top: 10px; padding: 5px; display: flex; justify-content: center; align-items: center; }
-        body.mobile-mode #promo-input { width: 60%; font-size: 14px; padding: 8px; }
-        body.mobile-mode #promo-btn { padding: 8px 15px; font-size: 14px; }
+        body.mobile-mode h1 { font-size: 24px; }
 
-        /* Кнопки меню */
-        body.mobile-mode .btn { padding: 5px; font-size: 10px; width: 140px; }
-        body.mobile-mode .shop-btn { width: 90%; font-size: 12px; }
-        body.mobile-mode #levelup-notify { font-size: 24px; }
-        
-        /* =============================================================== */
-        
+        body.mobile-mode .mission-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        body.mobile-mode .btn { padding: 15px; font-size: 14px; width: auto; }
+
+        body.mobile-mode .shop-btn, body.mobile-mode .editor-btn, body.mobile-mode .multi-btn, body.mobile-mode .menu-wide-btn, body.mobile-mode .skill-btn { width: 95%; font-size: 16px; padding: 15px; }
+
+        body.mobile-mode .shop-container { flex-direction: column; align-items: center; padding-bottom: 80px; }
+
+        body.mobile-mode .shop-column { width: 95%; margin-bottom: 10px; padding: 10px; }
+
+        body.mobile-mode .shop-item { font-size: 14px; padding: 10px 0; }
+
+        body.mobile-mode .buy-btn { padding: 8px 15px; font-size: 12px; min-width: 50px; text-align: center; }
+
+        body.mobile-mode #previewCanvas { width: 120px; height: 120px; }
+
+        body.mobile-mode .promo-container { margin-top: 15px; padding: 10px; }
+
+        body.mobile-mode #promo-input { width: 60%; font-size: 16px; padding: 10px; }
+
+        body.mobile-mode #promo-btn { padding: 10px 20px; font-size: 16px; }
+
+        body.mobile-mode #levelup-notify, body.mobile-mode #artifact-notify { font-size: 24px; }
+
+        body.mobile-mode #exit-mission-btn { padding: 10px 30px; font-size: 16px; border-width: 2px; top: 5px; }
+
     </style>
+
 </head>
+
 <body>
 
-    <div id="santa-cheat-btn">🎅</div>
-    <div id="cheat-menu">
-        <div class="cheat-option"><label>AIMBOT</label><input type="checkbox" id="chk-aim" onchange="toggleCheat('aim')"></div>
-        <div class="cheat-option"><label>WH (ESP)</label><input type="checkbox" id="chk-wh" onchange="toggleCheat('wh')"></div>
-        <div class="cheat-option"><label>AUTO LOOT</label><input type="checkbox" id="chk-autoloot" onchange="toggleCheat('autoloot')"></div>
-        <div class="cheat-option"><label>WALLBANG</label><input type="checkbox" id="chk-wallbang" onchange="toggleCheat('wallbang')"></div>
-    </div>
 
-    <div id="platform-screen" class="overlay" style="z-index: 30;">
-        <h1>Tactical Shooter<br>❄️ New Year ❄️</h1>
-        <h2>Оберіть керування</h2>
-        <button class="btn" onclick="selectPlatform('PC')">💻 ПК (Клавіатура)</button>
-        <button class="btn" onclick="selectPlatform('MOBILE')">📱 Телефон (Сенсор)</button>
-    </div>
 
-    <div id="shop-screen" class="overlay" style="z-index: 25; display: none; overflow-y: auto;">
-        <h1>МАГАЗИН</h1>
-        <div style="color: yellow; margin-bottom: 5px; font-size: 14px;">💰: <span id="shop-coins">0</span> | LVL: <span id="shop-level">1</span></div>
-        
-        <div class="shop-container">
-            <div class="shop-column preview-area">
-                <h3>ВИГЛЯД</h3>
-                <canvas id="previewCanvas" width="150" height="150" style="border: 2px solid #555; background: #222; margin-bottom: 5px;"></canvas>
-                <input type="color" id="colorPicker" value="#0077FF" onchange="updatePreview()">
-            </div>
-
-            <div class="shop-column">
-                <h3>АКСЕСУАРИ</h3>
-                <div id="accessories-list"></div>
-            </div>
-
-            <div class="shop-column">
-                <h3>ЗБРОЯ</h3>
-                <div id="weapons-list"></div>
-                
-                <div class="promo-container">
-                    <input type="text" id="promo-input" placeholder="КОД">
-                    <button id="promo-btn" onclick="redeemCode()">OK</button>
-                </div>
-            </div>
-        </div>
-
-        <button class="btn" onclick="closeShop()" style="margin-top: 10px; width: 90%; position: fixed; bottom: 10px; z-index: 30;">ВИЙТИ З МАГАЗИНУ</button>
-    </div>
-
-    <div id="menu-overlay" class="overlay" style="display: none;">
-        <h1 id="menu-title">МЕНЮ МІСІЙ</h1>
-        <div class="menu-stats">
-            LVL: <span id="menu-level">1</span> | XP: <span id="menu-xp">0</span> | 💰: <span id="menu-coins">0</span>
-        </div>
-        
-        <div id="menu-buttons" class="mission-grid">
-            <button class="btn" onclick="startMission(1)">1: Окоп (20с)</button>
-            <button class="btn" onclick="startMission(2)">2: Зачистка (5)</button>
-            <button class="btn boss-btn" onclick="startMission(3)">3: БОС</button>
-            <button class="btn" onclick="startMission(4)">4: ОРДА (40с)</button>
-            <button class="btn" onclick="startMission(5)">5: М'ЯСО (50)</button>
-            <button class="btn hard-btn" onclick="startMission(6)">6: ХАРД (60с)</button>
-            <button class="btn grenade-mission-btn" onclick="startMission(7)">7: ПІДРИВ</button>
-            <button class="btn hard-btn" onclick="startMission(8)">8: АПОКАЛІПСИС</button>
-            <button class="btn special-btn" onclick="startMission(9)">9: ЗАХВАТ</button>
-            <button class="btn special-btn" onclick="startMission(10)">10: ТЕМРЯВА</button>
-            <button class="btn special-btn" onclick="startMission(11)">11: СНАЙПЕР</button>
-        </div>
-        <button class="btn shop-btn" onclick="openShop()">🛒 МАГАЗИН І ЗБРОЯ</button>
-        <button id="end-game-btn" class="btn" onclick="showMainMenu()" style="display:none; background: #FF3333; margin-top: 20px;">В ГОЛОВНЕ МЕНЮ</button>
-    </div>
-
-    <div id="game-ui">
-        <div id="top-bar">
-            <div>
-                <div id="mission-text">Ціль...</div>
-                <div class="bar-container" id="health-bar"><div id="health-fill"></div></div>
-                <div class="bar-container" id="xp-bar-container">
-                    <div id="level-text">L1</div>
-                    <div id="xp-fill"></div>
-                </div>
-                <div class="stat-box" id="weapon-info" style="margin-top: 5px;">Зброя</div>
-            </div>
-            <div style="text-align: right;">
-                <div class="stat-box" id="stats">Час: 0.0</div>
-                <div class="stat-box" id="grenade-counter">💣: 3</div>
-                <div class="stat-box" id="coin-counter">💰: 0</div>
-            </div>
-        </div>
-    </div>
-    
     <div id="levelup-notify">НОВИЙ РІВЕНЬ!<br><span style="font-size:20px; color:white;">HP Full!</span></div>
 
-    <div id="mobile-controls">
-        <div id="stick-left" class="joystick-zone"><div class="joystick-knob" id="knob-left"></div></div>
-        <div id="stick-right" class="joystick-zone"><div class="joystick-knob" id="knob-right"></div></div>
-        <div id="mobile-grenade-btn" onclick="throwGrenadeMobile()">💣</div>
-        <div id="weapon-bar"></div>
+    <div id="artifact-notify">ЗНАХІДКА!</div>
+
+
+
+    <div id="cheat-toggle-btn" onclick="document.getElementById('cheat-menu').style.display='block'">🎅</div>
+
+    <div id="cheat-menu">
+
+        <h3 style="color:white; margin:0 0 10px 0;">SANTA CHEATS</h3>
+
+        <div class="cheat-option">
+
+            <span>AIMBOT</span>
+
+            <input type="checkbox" class="cheat-checkbox" id="chk-aim" onchange="cheats.aim=this.checked">
+
+        </div>
+
+        <div class="cheat-option">
+
+            <span>ESP (WH)</span>
+
+            <input type="checkbox" class="cheat-checkbox" id="chk-wh" onchange="cheats.wh=this.checked">
+
+        </div>
+
+        <div class="cheat-option">
+
+            <span>AUTO-LOOT</span>
+
+            <input type="checkbox" class="cheat-checkbox" id="chk-loot" onchange="cheats.loot=this.checked">
+
+        </div>
+
+        <div class="cheat-option">
+
+            <span>WALLBANG (No Col)</span>
+
+            <input type="checkbox" class="cheat-checkbox" id="chk-wall" onchange="cheats.wallbang=this.checked">
+
+        </div>
+
+        <button class="btn" style="width:100%; border-color:red; margin-top:10px;" onclick="document.getElementById('cheat-menu').style.display='none'">CLOSE</button>
+
     </div>
+
+
+
+    <div id="dev-menu">
+
+        <h2>🛠️ DEV MENU</h2>
+
+        <button class="dev-btn" onclick="devAction('coins')">+10,000 COINS</button>
+
+        <button class="dev-btn" onclick="devAction('level')">+10 LEVELS</button>
+
+        <button class="dev-btn" onclick="devAction('unlock')">UNLOCK ALL</button>
+
+        <button class="dev-btn" onclick="devAction('god')">TOGGLE GODMODE</button>
+
+        <button class="dev-btn" onclick="document.getElementById('dev-menu').style.display='none'" style="border-color: red;">CLOSE</button>
+
+    </div>
+
+
+
+    <div id="platform-screen" class="overlay" style="z-index: 30;">
+
+        <h1>Tactical Shooter<br>❄️ New Year ❄️</h1>
+
+        <h2>Оберіть керування / Choose Control</h2>
+
+        <button class="btn" style="width: 200px; padding: 20px; font-size: 18px;" onclick="selectPlatform('PC')">💻 PC (Mouse/Keys)</button>
+
+        <button class="btn" style="width: 200px; padding: 20px; font-size: 18px;" onclick="selectPlatform('MOBILE')">📱 Mobile (Touch)</button>
+
+    </div>
+
+
+
+    <div id="settings-screen" class="overlay">
+
+        <div class="settings-box">
+
+            <h1 id="lbl-settings">НАЛАШТУВАННЯ</h1>
+
+            <div style="margin: 10px;">
+
+                <button class="btn" onclick="setLang('uk')">🇺🇦 UKR</button>
+
+                <button class="btn" onclick="setLang('en')">🇺🇸 ENG</button>
+
+            </div>
+
+            <button class="btn menu-wide-btn" id="btn-hud-edit" style="display:none;" onclick="startHudEdit()">📱 HUD EDITOR</button>
+
+            <br>
+
+            <button class="btn menu-wide-btn" onclick="closeSettings()" style="margin-top:20px; border-color:red;">OK</button>
+
+        </div>
+
+    </div>
+
+
+
+    <div id="hud-edit-overlay">
+
+        <div style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); pointer-events: auto; display: flex; gap: 10px;">
+
+            <button class="btn" style="background: green; padding: 15px 30px;" onclick="saveHud()">SAVE</button>
+
+            <button class="btn" style="background: red; padding: 15px 30px;" onclick="resetHud()">RESET</button>
+
+        </div>
+
+        <h2 style="position:absolute; top:20%; width:100%; text-align:center; text-shadow:0 0 5px black;">DRAG TO MOVE (FIXED)</h2>
+
+    </div>
+
+
+
+    <div id="editor-ui" style="display:none;">
+
+        <div class="tool-btn" id="tool-wall" onclick="setEditorTool(1)">⬜</div>
+
+        <div class="tool-btn" id="tool-spawn" onclick="setEditorTool(2)">👾</div>
+
+        <div class="tool-btn" id="tool-erase" onclick="setEditorTool(0)">❌</div>
+
+        <div class="tool-btn" onclick="saveCustomMap()" style="font-size:12px;">SAVE</div>
+
+        <div class="tool-btn" onclick="exitEditor()" style="font-size:12px; color:red;">EXIT</div>
+
+    </div>
+
+
+
+    <div id="multiplayer-screen" class="overlay">
+
+        <h1>REAL ONLINE MULTIPLAYER</h1>
+
+        <div class="server-box">
+
+            <h3 style="color:white">Твій ID (Надішли другу):</h3>
+
+            <div id="my-peer-id" onclick="copyId()">Loading...</div>
+
+            <div id="mp-status" class="server-status">Connecting to global server...</div>
+
+            <hr style="border-color:#444; margin: 15px 0;">
+
+            <h3 style="color:white">Приєднатися до друга:</h3>
+
+            <input type="text" id="join-peer-id" placeholder="Введи ID друга тут">
+
+            <button class="btn menu-wide-btn" onclick="joinPeerGame()" style="background:#004400; margin: 10px auto;">CONNECT & PLAY</button>
+
+        </div>
+
+        <button class="btn menu-wide-btn" onclick="closeMultiplayer()" style="margin-top:20px; border-color:red;">BACK</button>
+
+    </div>
+
+
+
+    <div id="shop-screen" class="overlay" style="z-index: 25; display: none; overflow-y: auto;">
+
+        <h1>МАГАЗИН</h1>
+
+        <div style="color: yellow; margin-bottom: 5px; font-size: 14px;">💰: <span id="shop-coins">0</span> | LVL: <span id="shop-level">1</span></div>
+
+        <div class="shop-container">
+
+            <div class="shop-column preview-area">
+
+                <h3 id="lbl-look">ВИГЛЯД</h3>
+
+                <canvas id="previewCanvas" width="150" height="150" style="border: 2px solid #555; background: #222; margin-bottom: 5px;"></canvas>
+
+                <input type="color" id="colorPicker" value="#0077FF" onchange="updatePreview()">
+
+                <div style="font-size:10px; color:#aaa; margin-top:5px;">Шолом/Жилет дають HP!</div>
+
+            </div>
+
+            <div class="shop-column">
+
+                <h3 id="lbl-acc">АКСЕСУАРИ</h3>
+
+                <div id="accessories-list"></div>
+
+            </div>
+
+            <div class="shop-column">
+
+                <h3 id="lbl-wpn">ЗБРОЯ</h3>
+
+                <div id="weapons-list"></div>
+
+                <div class="promo-container">
+
+                    <input type="text" id="promo-input" placeholder="КОД">
+
+                    <button id="promo-btn" onclick="redeemCode()">OK</button>
+
+                </div>
+
+            </div>
+
+            <div class="shop-column">
+
+                <h3>УЛЮБЛЕНЦІ</h3>
+
+                <div id="pets-list"></div>
+
+            </div>
+
+            <div class="shop-column">
+
+                <h3>ІНВЕНТАР (SELL)</h3>
+
+                <div id="inventory-list" style="font-size:12px; color:#aaa;">Пусто...</div>
+
+            </div>
+
+        </div>
+
+        <button class="btn menu-wide-btn" onclick="closeShop()" style="margin-top: 10px; position: fixed; bottom: 10px; z-index: 30;">EXIT</button>
+
+    </div>
+
+
+
+    <div id="skills-screen" class="overlay" style="z-index: 26; display: none; overflow-y: auto;">
+
+        <h1>НАВИЧКИ</h1>
+
+        <div style="color: yellow; margin-bottom: 5px; font-size: 14px;">💰: <span id="skill-coins">0</span> | LVL: <span id="skill-level">1</span></div>
+
+        <div class="shop-container" id="skills-list">
+
+            </div>
+
+        <button class="btn menu-wide-btn" onclick="closeSkills()" style="margin-top: 10px; position: fixed; bottom: 10px; z-index: 30;">EXIT</button>
+
+    </div>
+
+
+
+    <div id="menu-overlay" class="overlay" style="display: none;">
+
+        <h1 id="menu-title">МЕНЮ МІСІЙ</h1>
+
+        <div class="menu-stats">
+
+            LVL: <span id="menu-level">1</span> | XP: <span id="menu-xp">0</span> | 💰: <span id="menu-coins">0</span>
+
+        </div>
+
+        
+
+        <div id="menu-buttons" class="mission-grid">
+
+            <button class="btn" onclick="startMission(1)">1: Окоп (20с)</button>
+
+            <button class="btn" onclick="startMission(2)">2: Зачистка (5)</button>
+
+            <button class="btn boss-btn" onclick="startMission(3)">3: БОС</button>
+
+            <button class="btn" onclick="startMission(4)">4: ОРДА (40с)</button>
+
+            <button class="btn" onclick="startMission(5)">5: М'ЯСО (50)</button>
+
+            <button class="btn hard-btn" onclick="startMission(6)">6: ХАРД (60с)</button>
+
+            <button class="btn" onclick="startMission(7)">7: ПІДРИВ</button>
+
+            <button class="btn hard-btn" onclick="startMission(8)">8: АПОКАЛІПСИС</button>
+
+            <button class="btn special-btn" onclick="startMission(9)">9: ЗАХВАТ</button>
+
+            <button class="btn special-btn" onclick="startMission(10)">10: ТЕМРЯВА</button>
+
+            <button class="btn special-btn" onclick="startMission(11)">11: СНАЙПЕР</button>
+
+            <button class="btn special-btn" onclick="startMission(13)">13: BAZOOKA</button>
+
+            <button class="btn hard-btn" onclick="startMission(14)">14: ОБОРОНА</button>
+
+            <button class="btn boss-btn" onclick="startMission(15)">15: DUAL BOSS</button>
+
+            <button class="btn hard-btn" onclick="startMission(16)">16: TANK RUSH</button>
+
+            <button class="btn special-btn" onclick="startMission(17)">17: SPEEDRUN</button>
+
+            <button class="btn boss-btn" onclick="startMission(18)">18: BOSS RUSH</button>
+
+            <button class="btn" style="border-color: #00FF00; color: #AAFFAA;" onclick="startTraining()">ТРЕНУВАННЯ</button>
+
+        </div>
+
+        <button class="btn skill-btn" onclick="openSkills()">🧠 НАВИЧКИ</button>
+
+        <button class="btn multi-btn" onclick="openMultiplayer()">🌐 ОНЛАЙН (P2P)</button>
+
+        <button class="btn menu-wide-btn" style="border-color: #00FFFF; color: #AAFFFF;" onclick="playCustomMap()">🗺️ CUSTOM MAP</button>
+
+        <button class="btn shop-btn" onclick="openShop()">🛒 МАГАЗИН</button>
+
+        <button class="btn editor-btn" onclick="openEditor()">🛠️ РЕДАКТОР КАРТ</button>
+
+        <button class="btn menu-wide-btn" onclick="openSettings()">⚙️ НАЛАШТУВАННЯ</button>
+
+        <button id="end-game-btn" class="btn menu-wide-btn" onclick="showMainMenu()" style="display:none; background: #FF3333; margin-top: 20px;">В ГОЛОВНЕ МЕНЮ</button>
+
+    </div>
+
+
+
+    <div id="game-ui">
+
+        <button id="exit-mission-btn" onclick="showMainMenu()">MENU</button>
+
+        <div id="top-bar">
+
+            <div>
+
+                <div id="mission-text">Ціль...</div>
+
+                <div class="bar-container" id="health-bar"><div id="health-fill"></div></div>
+
+                <div class="bar-container" id="xp-bar-container">
+
+                    <div id="level-text">L1</div>
+
+                    <div id="xp-fill"></div>
+
+                </div>
+
+                <div class="stat-box" id="weapon-info" style="margin-top: 5px;">Зброя</div>
+
+            </div>
+
+            <div style="text-align: right;">
+
+                <div class="stat-box" id="stats">Час: 0.0</div>
+
+                <div class="stat-box" id="grenade-counter">💣: 3</div>
+
+                <div class="stat-box" id="coin-counter">💰: 0</div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div id="training-ui" style="display:none; position: absolute; top: 60px; right: 10px; background: rgba(0,0,0,0.7); padding: 10px; border: 1px solid #fff; z-index: 15; text-align: right;">
+
+        <h3 style="color:white; margin:0;">Target Type</h3>
+
+        <label style="display:block; color:#AAA;"><input type="checkbox" id="tr-static" checked> Static</label>
+
+        <label style="display:block; color:#AAA;"><input type="checkbox" id="tr-moving"> Moving</label>
+
+        <button class="btn" style="width:100px; font-size:10px; padding:5px;" onclick="clearEnemies()">CLEAR</button>
+
+    </div>
+
+
+
+    <div id="mobile-controls">
+
+        <div id="stick-left" class="joystick-zone hud-draggable"><div class="joystick-knob" id="knob-left"></div></div>
+
+        <div id="stick-right" class="joystick-zone hud-draggable"><div class="joystick-knob" id="knob-right"></div></div>
+
+        <div id="mobile-grenade-btn" class="hud-draggable" onclick="throwGrenadeMobile()">💣</div>
+
+        <div id="weapon-bar" class="hud-draggable"></div>
+
+    </div>
+
+
 
     <canvas id="gameCanvas"></canvas>
 
+
+
     <script>
+
+        // --- CHEATS LOGIC ---
+
+        let cheats = { aim: false, wh: false, loot: false, wallbang: false };
+
+        let cheatUnlocked = false;
+
+
+
+        const cheatBtn = document.getElementById('cheat-toggle-btn');
+
+        let isDraggingCheat = false;
+
+        let cheatDragOffset = {x:0, y:0};
+
+
+
+        cheatBtn.addEventListener('mousedown', (e) => { isDraggingCheat = true; cheatDragOffset.x = e.clientX - cheatBtn.offsetLeft; cheatDragOffset.y = e.clientY - cheatBtn.offsetTop; });
+
+        window.addEventListener('mousemove', (e) => { if(isDraggingCheat) { cheatBtn.style.left = (e.clientX - cheatDragOffset.x) + 'px'; cheatBtn.style.top = (e.clientY - cheatDragOffset.y) + 'px'; } });
+
+        window.addEventListener('mouseup', () => { isDraggingCheat = false; });
+
+        
+
+        cheatBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); isDraggingCheat = true; cheatDragOffset.x = e.touches[0].clientX - cheatBtn.offsetLeft; cheatDragOffset.y = e.touches[0].clientY - cheatBtn.offsetTop; });
+
+        window.addEventListener('touchmove', (e) => { if(isDraggingCheat) { e.preventDefault(); cheatBtn.style.left = (e.touches[0].clientX - cheatDragOffset.x) + 'px'; cheatBtn.style.top = (e.touches[0].clientY - cheatDragOffset.y) + 'px'; } }, {passive: false});
+
+        window.addEventListener('touchend', () => { isDraggingCheat = false; });
+
+
+
+        // --- LANGUAGE & SETTINGS ---
+
+        const TEXTS = {
+
+            uk: { menu: "МЕНЮ МІСІЙ", shop: "МАГАЗИН", settings: "НАЛАШТУВАННЯ", goal: "Ціль", time: "Час", look: "ВИГЛЯД", acc: "АКСЕСУАРИ", wpn: "ЗБРОЯ" },
+
+            en: { menu: "MISSIONS", shop: "SHOP", settings: "SETTINGS", goal: "Goal", time: "Time", look: "LOOK", acc: "ACCESSORIES", wpn: "WEAPONS" }
+
+        };
+
+        let curLang = 'uk';
+
+        function setLang(l) { 
+
+            curLang = l; 
+
+            document.getElementById('menu-title').innerText = TEXTS[l].menu;
+
+            document.getElementById('lbl-settings').innerText = TEXTS[l].settings;
+
+            document.getElementById('lbl-look').innerText = TEXTS[l].look;
+
+            document.getElementById('lbl-acc').innerText = TEXTS[l].acc;
+
+            document.getElementById('lbl-wpn').innerText = TEXTS[l].wpn;
+
+        }
+
+        function openSettings() { document.getElementById('settings-screen').style.display = 'flex'; }
+
+        function closeSettings() { document.getElementById('settings-screen').style.display = 'none'; }
+
+
+
+        // --- CORE GAME VARS ---
+
         const canvas = document.getElementById('gameCanvas');
+
         const ctx = canvas.getContext('2d');
 
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resize);
-        resize();
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+
+        window.addEventListener('resize', resize); resize();
+
+
 
         let playerStats = {
+
             totalKills: 0, coins: 0, color: '#0077FF', xp: 0, level: 1, nextLevelXp: 100,
+
             unlockedWeapons: ['pistol', 'rifle', 'shotgun', 'sniper'],
-            unlockedOutfits: ['none'], currentOutfit: 'none', redeemedCodes: [], cheatsUnlocked: false 
+
+            unlockedOutfits: ['none'], currentOutfit: 'none', 
+
+            redeemedCodes: [], godMode: false,
+
+            inventory: [], skills: [],
+
+            unlockedPets: ['none'], currentPet: 'none'
+
         };
-        let activeCheats = { aim: false, wh: false, autoloot: false, wallbang: false };
 
-        function toggleCheatMenu() {
-            let menu = document.getElementById('cheat-menu');
-            let btn = document.getElementById('santa-cheat-btn');
-            if (menu.style.display !== 'block') {
-                const rect = btn.getBoundingClientRect();
-                menu.style.top = (rect.bottom + 5) + 'px';
-                let leftPos = rect.left - (menu.offsetWidth - rect.width)/2;
-                if(leftPos + 200 > window.innerWidth) leftPos = window.innerWidth - 210;
-                menu.style.left = leftPos + 'px';
-            }
-            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-        }
-        function toggleCheat(type) {
-            if (type === 'aim') activeCheats.aim = document.getElementById('chk-aim').checked;
-            if (type === 'wh') activeCheats.wh = document.getElementById('chk-wh').checked;
-            if (type === 'autoloot') activeCheats.autoloot = document.getElementById('chk-autoloot').checked;
-            if (type === 'wallbang') activeCheats.wallbang = document.getElementById('chk-wallbang').checked;
+        let customMap = { walls: [], spawns: [] };
+
+        let hudLayout = {};
+
+        let megaEquipMode = false; // Temporary flag for code 2KFNWKC
+
+
+
+        // --- DATA DEFS ---
+
+        const artifactTypes = [
+
+            { id: 'rusty_gear', name: 'Іржава шестерня', price: 50, rarity: 0.6 },
+
+            { id: 'ancient_coin', name: 'Стародавня монета', price: 150, rarity: 0.3 },
+
+            { id: 'blue_crystal', name: 'Синій кристал', price: 500, rarity: 0.08 },
+
+            { id: 'gold_idol', name: 'Золотий ідол', price: 2000, rarity: 0.02 },
+
+            { id: 'alien_circuit', name: 'Іншопланетна Схема', price: 1000, rarity: 0.05 },
+
+            { id: 'dragon_scale', name: 'Луска Дракона', price: 3500, rarity: 0.01 }
+
+        ];
+
+
+
+        const skillDefinitions = [
+
+            { id: 'speed', name: 'Спідраннер', desc: 'Швидкість +15%', price: 2000, lvl: 3 },
+
+            { id: 'ricochet', name: 'Рикошет', desc: '50% шанс відскоку кулі', price: 5000, lvl: 5 },
+
+            { id: 'vampire', name: 'Вампір', desc: '5% шанс лікування при вбивстві', price: 8000, lvl: 8 },
+
+            { id: 'magnet', name: 'Магніт', desc: 'Радіус підбору +50%', price: 3000, lvl: 10 },
+
+            { id: 'regen', name: 'Регенерація', desc: 'Відновлює 1 HP кожні 2с', price: 15000, lvl: 12 },
+
+            { id: 'toughness', name: 'Стійкість', desc: '-20% отриманої шкоди', price: 25000, lvl: 20 }
+
+        ];
+
+
+
+        // --- HUD EDITOR ---
+
+        let isHudEditing = false;
+
+        let activeHudTouchId = null; 
+
+        let hudDragOffset = {x:0, y:0};
+
+        let hudDragEl = null;
+
+
+
+        function startHudEdit() {
+
+            document.getElementById('settings-screen').style.display='none';
+
+            document.getElementById('hud-edit-overlay').style.display='block';
+
+            document.getElementById('mobile-controls').style.display='block';
+
+            ['stick-left','stick-right','mobile-grenade-btn','weapon-bar'].forEach(id=>{
+
+                document.getElementById(id).style.border='2px dashed yellow';
+
+            });
+
+            isHudEditing = true;
+
         }
 
-        const santaBtn = document.getElementById('santa-cheat-btn');
-        let dragObj = null; let dragOffsetX = 0; let dragOffsetY = 0; let isDraggingCheat = false;
-        santaBtn.addEventListener('mousedown', (e) => { if(e.button !== 0) return; isDraggingCheat = false; dragObj = santaBtn; const rect = santaBtn.getBoundingClientRect(); dragOffsetX = e.clientX - rect.left; dragOffsetY = e.clientY - rect.top; });
-        santaBtn.addEventListener('touchstart', (e) => { isDraggingCheat = false; dragObj = santaBtn; const rect = santaBtn.getBoundingClientRect(); dragOffsetX = e.touches[0].clientX - rect.left; dragOffsetY = e.touches[0].clientY - rect.top; e.preventDefault(); }, {passive: false});
-        window.addEventListener('mousemove', (e) => { if (dragObj) { isDraggingCheat = true; let newLeft = e.clientX - dragOffsetX; let newTop = e.clientY - dragOffsetY; newLeft = Math.max(0, Math.min(window.innerWidth - dragObj.offsetWidth, newLeft)); newTop = Math.max(0, Math.min(window.innerHeight - dragObj.offsetHeight, newTop)); dragObj.style.left = newLeft + 'px'; dragObj.style.top = newTop + 'px'; dragObj.style.right = 'auto'; document.getElementById('cheat-menu').style.display = 'none'; } });
-        window.addEventListener('touchmove', (e) => { if (dragObj) { isDraggingCheat = true; let newLeft = e.touches[0].clientX - dragOffsetX; let newTop = e.touches[0].clientY - dragOffsetY; newLeft = Math.max(0, Math.min(window.innerWidth - dragObj.offsetWidth, newLeft)); newTop = Math.max(0, Math.min(window.innerHeight - dragObj.offsetHeight, newTop)); dragObj.style.left = newLeft + 'px'; dragObj.style.top = newTop + 'px'; dragObj.style.right = 'auto'; document.getElementById('cheat-menu').style.display = 'none'; } });
-        window.addEventListener('mouseup', () => { if (dragObj && !isDraggingCheat) toggleCheatMenu(); dragObj = null; });
-        window.addEventListener('touchend', (e) => { if (dragObj && !isDraggingCheat) toggleCheatMenu(); dragObj = null; });
+        function saveHud() {
+
+            hudLayout = {
+
+                l: {x: document.getElementById('stick-left').style.left, y: document.getElementById('stick-left').style.top},
+
+                r: {x: document.getElementById('stick-right').style.left, y: document.getElementById('stick-right').style.top},
+
+                g: {x: document.getElementById('mobile-grenade-btn').style.left, y: document.getElementById('mobile-grenade-btn').style.top},
+
+                w: {x: document.getElementById('weapon-bar').style.left, y: document.getElementById('weapon-bar').style.top}
+
+            };
+
+            saveGame(); resetHudEditUI();
+
+        }
+
+        function resetHud() { hudLayout = {}; resetHudEditUI(); location.reload(); } 
+
+        function resetHudEditUI() {
+
+            isHudEditing = false;
+
+            document.getElementById('hud-edit-overlay').style.display='none';
+
+            document.getElementById('settings-screen').style.display='flex';
+
+            document.querySelectorAll('.hud-draggable').forEach(e=>e.style.border='none');
+
+            document.querySelector('.joystick-zone').style.border='2px solid rgba(255,255,255,0.3)';
+
+            document.getElementById('mobile-grenade-btn').style.border='2px solid #FFA500';
+
+        }
+
+        function applyHud() {
+
+            if(hudLayout.l) { let el=document.getElementById('stick-left'); el.style.left=hudLayout.l.x; el.style.top=hudLayout.l.y; el.style.bottom='auto'; el.style.right='auto'; }
+
+            if(hudLayout.r) { let el=document.getElementById('stick-right'); el.style.left=hudLayout.r.x; el.style.top=hudLayout.r.y; el.style.bottom='auto'; el.style.right='auto'; }
+
+            if(hudLayout.g) { let el=document.getElementById('mobile-grenade-btn'); el.style.left=hudLayout.g.x; el.style.top=hudLayout.g.y; el.style.bottom='auto'; el.style.right='auto'; }
+
+            if(hudLayout.w) { let el=document.getElementById('weapon-bar'); el.style.left=hudLayout.w.x; el.style.top=hudLayout.w.y; el.style.bottom='auto'; el.style.right='auto'; el.style.transform='none'; }
+
+        }
+
+
+
+        // --- EDITOR LOGIC ---
+
+        let editorTool = 1; 
+
+        function openEditor() { gameState = 'EDITOR'; document.getElementById('menu-overlay').style.display='none'; document.getElementById('editor-ui').style.display='flex'; if(controlMode==='MOBILE') document.getElementById('mobile-controls').style.display='none'; }
+
+        function setEditorTool(t) { editorTool = t; document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active')); if(t===1)document.getElementById('tool-wall').classList.add('active'); if(t===2)document.getElementById('tool-spawn').classList.add('active'); if(t===0)document.getElementById('tool-erase').classList.add('active'); }
+
+        function exitEditor() { document.getElementById('editor-ui').style.display='none'; showMainMenu(); }
+
+        function saveCustomMap() { saveGame(); alert('Map Saved!'); }
+
+        function handleEditorClick(cx, cy) {
+
+            let gx = Math.floor(cx/50)*50; let gy = Math.floor(cy/50)*50;
+
+            customMap.walls = customMap.walls.filter(w => w.x!==gx || w.y!==gy);
+
+            customMap.spawns = customMap.spawns.filter(s => s.x!==gx || s.y!==gy);
+
+            if(editorTool === 1) customMap.walls.push({x:gx, y:gy});
+
+            if(editorTool === 2) customMap.spawns.push({x:gx, y:gy});
+
+        }
+
+
 
         function getNextLevelXp(lvl) { return Math.floor(100 * Math.pow(1.2, lvl - 1)); }
+
         function addPlayerXp(amount) { playerStats.xp += amount; if (playerStats.xp >= playerStats.nextLevelXp) levelUp(); updateUI(); }
+
         function levelUp() { playerStats.xp -= playerStats.nextLevelXp; playerStats.level++; playerStats.nextLevelXp = getNextLevelXp(playerStats.level); playerStats.coins += 50 * playerStats.level; if (player) player.hp = player.maxHp; showLevelUpEffect(); saveGame(); if (playerStats.xp >= playerStats.nextLevelXp) levelUp(); }
+
         function showLevelUpEffect() { const el = document.getElementById('levelup-notify'); el.style.opacity = 1; el.style.top = '40%'; setTimeout(() => { el.style.opacity = 0; el.style.top = '30%'; }, 2000); }
+
+        function showArtifactEffect(name) { const el = document.getElementById('artifact-notify'); el.innerHTML = "ЗНАХІДКА!<br><span style='font-size:20px; color:white'>"+name+"</span>"; el.style.opacity = 1; el.style.top = '40%'; setTimeout(() => { el.style.opacity = 0; el.style.top = '30%'; }, 2000); }
+
+        
+
         function loadGame() {
-            let saved = localStorage.getItem('tacticalShooterData_v2');
-            if (saved) { let parsed = JSON.parse(saved); playerStats = { ...playerStats, ...parsed }; playerStats.nextLevelXp = getNextLevelXp(playerStats.level); if(!playerStats.redeemedCodes) playerStats.redeemedCodes = []; if(playerStats.cheatsUnlocked) document.getElementById('santa-cheat-btn').style.display = 'block'; }
+
+            let saved = localStorage.getItem('tacticalShooterData_v14_mega');
+
+            if (saved) { 
+
+                let parsed = JSON.parse(saved); 
+
+                playerStats = { ...playerStats, ...parsed.stats }; 
+
+                if(parsed.map) customMap = parsed.map;
+
+                if(parsed.hud) hudLayout = parsed.hud;
+
+                if(playerStats.cheatUnlocked) { cheatUnlocked=true; document.getElementById('cheat-toggle-btn').style.display='flex'; }
+
+                if(!playerStats.inventory) playerStats.inventory = [];
+
+                if(!playerStats.skills) playerStats.skills = [];
+
+                if(!playerStats.unlockedPets) playerStats.unlockedPets = ['none'];
+
+                if(!playerStats.currentPet) playerStats.currentPet = 'none';
+
+                playerStats.nextLevelXp = getNextLevelXp(playerStats.level); 
+
+                applyHud();
+
+            }
+
             updateMenuStats();
+
         }
-        function saveGame() { localStorage.setItem('tacticalShooterData_v2', JSON.stringify(playerStats)); updateMenuStats(); }
+
+        function saveGame() { 
+
+            playerStats.cheatUnlocked = cheatUnlocked;
+
+            // Note: megaEquipMode is NOT saved, so it resets on reload.
+
+            localStorage.setItem('tacticalShooterData_v14_mega', JSON.stringify({stats: playerStats, map: customMap, hud: hudLayout})); 
+
+            updateMenuStats(); 
+
+        }
+
         function updateMenuStats() { document.getElementById('menu-coins').innerText = playerStats.coins; document.getElementById('menu-level').innerText = playerStats.level; document.getElementById('menu-xp').innerText = `${Math.floor(playerStats.xp)}/${playerStats.nextLevelXp}`; }
 
+
+
+        // --- SHOP ITEMS ---
+
         const shopItems = {
-            outfits: [{ id: 'none', name: 'Без екіпу', price: 0 }, { id: 'santa_hat', name: '🎅 Шапка', price: 0 }, { id: 'cap', name: '🧢 Кепка', price: 150 }, { id: 'helmet', name: '🪖 Каска', price: 300 }, { id: 'vest', name: '🛡️ Жилет', price: 500 }],
-            weapons: [{ id: 'minigun', name: 'КУЛЕМЕТ (LVL 5)', price: 1000, levelReq: 5 }]
+
+            outfits: [
+
+                { id: 'none', name: 'Без екіпу', price: 0 }, 
+
+                { id: 'santa_hat', name: '🎅 Шапка', price: 0 }, 
+
+                { id: 'cap', name: '🧢 Кепка', price: 150 }, 
+
+                { id: 'helmet', name: '🪖 Каска (+50 HP)', price: 1500 }, 
+
+                { id: 'vest', name: '🛡️ Жилет (+100 HP)', price: 3000 },
+
+                { id: 'nvg', name: '🥽 NVG (+80 HP)', price: 5000 },
+
+                { id: 'full_armor', name: '👹 Джаггернаут (+250 HP)', price: 8000 },
+
+                { id: 'chain', name: '🥇 Ланцюг', price: 500 },
+
+                { id: 'crown', name: '👑 Корона (+300 HP)', price: 20000 }
+
+            ],
+
+            weapons: [
+
+                { id: 'minigun', name: 'КУЛЕМЕТ (LVL 5)', price: 1000, levelReq: 5 },
+
+                { id: 'bazooka', name: 'БАЗУКА (LVL 8)', price: 5000, levelReq: 8 },
+
+                { id: 'crossbow', name: 'АРБАЛЕТ (LVL 10)', price: 8000, levelReq: 10 },
+
+                { id: 'laser', name: 'ЛАЗЕР (LVL 12)', price: 10000, levelReq: 12 },
+
+                { id: 'plasma', name: 'ПЛАЗМА (LVL 18)', price: 15000, levelReq: 18 }
+
+            ],
+
+            pets: [
+
+                { id: 'none', name: 'Немає', price: 0 },
+
+                { id: 'drone', name: 'Бойовий Дрон', price: 5000, levelReq: 15 },
+
+                { id: 'slime', name: 'Токсик Слайм', price: 12000, levelReq: 18 },
+
+                { id: 'ufo', name: 'Міні НЛО', price: 20000, levelReq: 20 },
+
+                { id: 'wisp', name: 'Примарний Вогник', price: 25000, levelReq: 22 },
+
+                { id: 'turret', name: 'Міні-Турель', price: 30000, levelReq: 25 }
+
+            ]
+
         };
-        function redeemCode() {
-            const input = document.getElementById('promo-input'); const code = input.value.trim().toUpperCase(); 
-            const secretCode = "FHJWIDFNN2137217^$&*@JFUHIWHAAHSDN2273871287873201JDFJHWOMF%(#&$(*@&";
-            if (playerStats.redeemedCodes.includes(code)) { alert("Вже використано!"); return; }
-            let success = false; let msg = "";
-            if (code === secretCode) { playerStats.cheatsUnlocked = true; document.getElementById('santa-cheat-btn').style.display = 'block'; msg = "ХО-ХО-ХО!"; success = true; }
-            switch(code) {
-                case 'XST46GYS73': playerStats.coins += 500; msg = "+500$"; success = true; break;
-                case 'EYDHJ36KL4': playerStats.coins += 1000; msg = "+1000$"; success = true; break;
-                case 'FGWLKCHS56': if (playerStats.level < 5) { playerStats.level = 5; playerStats.nextLevelXp = getNextLevelXp(5); playerStats.xp = 0; msg = "Level 5!"; } else msg = "Вже 5+ рівень."; success = true; break;
-                case 'NEWYEAR2026': if (!playerStats.unlockedWeapons.includes('snowball')) { playerStats.unlockedWeapons.push('snowball'); msg = "СНІГОМЕТ!"; success = true; } break;
-                case 'DAVX5H8KD': playerStats.coins += 1000; if (playerStats.level < 5) { playerStats.level = 5; playerStats.nextLevelXp = getNextLevelXp(5); playerStats.xp = 0; } if (!playerStats.unlockedWeapons.includes('minigun')) playerStats.unlockedWeapons.push('minigun'); msg = "КУЛЕМЕТ + 1000$"; success = true; break;
-                default: if(!success && code !== secretCode) alert("Невірний код!");
+
+
+
+        function devAction(act) {
+
+            if(act==='coins') playerStats.coins+=10000;
+
+            if(act==='level') for(let i=0;i<10;i++) levelUp();
+
+            if(act==='god') { playerStats.godMode = !playerStats.godMode; alert("GodMode: "+playerStats.godMode); }
+
+            if(act==='unlock') {
+
+                shopItems.outfits.forEach(o=> { if(!playerStats.unlockedOutfits.includes(o.id)) playerStats.unlockedOutfits.push(o.id); });
+
+                shopItems.weapons.forEach(w=> { if(!playerStats.unlockedWeapons.includes(w.id)) playerStats.unlockedWeapons.push(w.id); });
+
+                shopItems.pets.forEach(p=> { if(!playerStats.unlockedPets.includes(p.id)) playerStats.unlockedPets.push(p.id); });
+
             }
-            if (success) { playerStats.redeemedCodes.push(code); saveGame(); updateMenuStats(); document.getElementById('shop-coins').innerText = playerStats.coins; document.getElementById('shop-level').innerText = playerStats.level; renderShopItems(); alert(msg); input.value = ""; }
+
+            saveGame(); updateMenuStats();
+
         }
 
-        // --- ОНОВЛЕНА ФУНКЦІЯ ВІДОБРАЖЕННЯ МАГАЗИНУ (СУПЕР КОМПАКТНА) ---
-        const pCtx = document.getElementById('previewCanvas').getContext('2d');
-        function openShop() { document.getElementById('menu-overlay').style.display='none'; document.getElementById('shop-screen').style.display='flex'; document.getElementById('shop-coins').innerText=playerStats.coins; document.getElementById('shop-level').innerText=playerStats.level; renderShopItems(); updatePreview(); }
-        function closeShop() { saveGame(); document.getElementById('shop-screen').style.display='none'; document.getElementById('menu-overlay').style.display='flex'; }
-        function renderShopItems() {
-            const al = document.getElementById('accessories-list'); al.innerHTML='';
-            shopItems.outfits.forEach(i => {
-                let div=document.createElement('div'); div.className='shop-item';
-                let owned=playerStats.unlockedOutfits.includes(i.id), equipped=playerStats.currentOutfit===i.id;
-                // Компактний текст кнопок
-                let btnText = owned ? (equipped ? 'V' : 'Взяти') : (i.price === 0 ? '0$' : i.price+'$');
-                div.innerHTML=`<span>${i.name}</span><button class="buy-btn ${equipped?'equipped':(owned?'owned':'')}" onclick="handleShopAction('outfit','${i.id}',${i.price})">${btnText}</button>`;
-                al.appendChild(div);
-            });
-            const wl = document.getElementById('weapons-list'); wl.innerHTML='';
-            shopItems.weapons.forEach(i => {
-                let div=document.createElement('div'); div.className='shop-item';
-                let owned=playerStats.unlockedWeapons.includes(i.id), locked=i.levelReq && playerStats.level < i.levelReq;
-                // Компактний текст кнопок
-                let btnText = owned ? 'V' : (locked ? 'L'+i.levelReq : i.price+'$');
-                div.innerHTML=`<span>${i.name}</span><button class="buy-btn ${owned?'owned':''}" onclick="handleShopAction('weapon','${i.id}',${i.price})" ${owned||locked?'disabled':''}>${btnText}</button>`;
-                wl.appendChild(div);
-            });
+
+
+        function redeemCode() {
+
+            const input = document.getElementById('promo-input'); const code = input.value.trim().toUpperCase(); 
+
+            // NOTE: Special Mega Code does NOT get added to redeemedCodes so it can be used again after reload, 
+
+            // but effectively it's one-time per session.
+
+            
+
+            if (code === '2KFNWKC') {
+
+                if(megaEquipMode) { alert("Вже активовано!"); return; }
+
+                megaEquipMode = true;
+
+                alert("MEGA MODE ACTIVATED!\nВсі аксесуари одягнені!\nВсі пітомці викликані!\nHP Boosted!");
+
+                // No save here intentionally for mega mode
+
+                input.value = "";
+
+                return;
+
+            }
+
+
+
+            if (playerStats.redeemedCodes.includes(code)) { alert("Вже використано!"); return; }
+
+            let success = false; let msg = "";
+
+            if (code === 'FHJWIDFNN2137217^$&*@JFUHIWHAAHSDN2273871287873201JDFJHWOMF%(#&$(*@&') { cheatUnlocked = true; document.getElementById('cheat-toggle-btn').style.display = 'flex'; alert("SANTA CHEAT ENABLED!"); saveGame(); return; }
+
+            if (code === 'DRITKVMXNVBZXHS21893') { document.getElementById('dev-menu').style.display = 'block'; return; }
+
+            switch(code) {
+
+                case 'XST46GYS73': playerStats.coins += 500; msg = "+500$"; success = true; break;
+
+                case 'EYDHJ36KL4': playerStats.coins += 1000; msg = "+1000$"; success = true; break;
+
+                case 'GDSUQK24DKL4': playerStats.coins += 500; msg = "+500$"; success = true; break;
+
+                case 'FHDJDKIN3456M3': playerStats.coins += 1000; msg = "+1000$"; success = true; break;
+
+                case 'DFHWUIDNBHDJW3568': playerStats.coins += 1500; msg = "+1500$"; success = true; break;
+
+                case 'FGWLKCHS56': if (playerStats.level < 5) { playerStats.level = 5; playerStats.nextLevelXp = getNextLevelXp(5); playerStats.xp = 0; msg = "Level 5!"; } else msg = "Вже 5+ рівень."; success = true; break;
+
+                case 'NEWYEAR2026': if (!playerStats.unlockedWeapons.includes('snowball')) { playerStats.unlockedWeapons.push('snowball'); msg = "СНІГОМЕТ!"; success = true; } break;
+
+                default: alert("Невірний код!");
+
+            }
+
+            if (success) { playerStats.redeemedCodes.push(code); saveGame(); updateMenuStats(); document.getElementById('shop-coins').innerText = playerStats.coins; renderShopItems(); if(controlMode==='MOBILE') setupMobileWeapons(); alert(msg); input.value = ""; }
+
         }
-        function handleShopAction(type, id, price) { if(type==='outfit') { if(playerStats.unlockedOutfits.includes(id)) playerStats.currentOutfit=id; else if(playerStats.coins>=price) { playerStats.coins-=price; playerStats.unlockedOutfits.push(id); playerStats.currentOutfit=id; } } else if(type==='weapon' && !playerStats.unlockedWeapons.includes(id)) { if(playerStats.coins>=price) { playerStats.coins-=price; playerStats.unlockedWeapons.push(id); } } updatePreview(); renderShopItems(); document.getElementById('shop-coins').innerText=playerStats.coins; }
-        function updatePreview() { let c=document.getElementById('colorPicker').value; playerStats.color=c; pCtx.clearRect(0,0,150,150); pCtx.save(); pCtx.translate(75,75); pCtx.scale(2.5,2.5); pCtx.beginPath(); pCtx.arc(0,0,15,0,Math.PI*2); pCtx.fillStyle=c; pCtx.fill(); pCtx.strokeStyle='#000'; pCtx.lineWidth=1; pCtx.stroke(); if (playerStats.currentOutfit === 'santa_hat') { pCtx.fillStyle='#D40000'; pCtx.beginPath(); pCtx.moveTo(-15,-5); pCtx.lineTo(15,-5); pCtx.lineTo(0,-28); pCtx.fill(); pCtx.fillStyle='#FFF'; pCtx.fillRect(-16,-5,32,6); pCtx.beginPath(); pCtx.arc(0,-28,5,0,Math.PI*2); pCtx.fill(); } else if (playerStats.currentOutfit === 'helmet') { pCtx.fillStyle='#334400'; pCtx.beginPath(); pCtx.arc(0,0,16,Math.PI,0); pCtx.fill(); pCtx.fillStyle='#223300'; pCtx.fillRect(-15,-5,30,5); } else if (playerStats.currentOutfit === 'vest') { pCtx.fillStyle='#2E3B22'; pCtx.fillRect(-14,-14,28,28); pCtx.fillStyle='#4A5D3A'; pCtx.fillRect(-10,2,8,10); pCtx.fillRect(2,2,8,10); } else if (playerStats.currentOutfit === 'cap') { pCtx.fillStyle='#C2B280'; pCtx.beginPath(); pCtx.arc(0,0,15,Math.PI*0.8,Math.PI*3.2); pCtx.fill(); pCtx.fillStyle='#A09165'; pCtx.fillRect(13,-13,14,26); } pCtx.fillStyle='#000'; pCtx.fillRect(10,-3,15,6); pCtx.restore(); }
+
+
+
+        const pCtx = document.getElementById('previewCanvas').getContext('2d');
+
+        function openShop() { document.getElementById('menu-overlay').style.display='none'; document.getElementById('shop-screen').style.display='flex'; document.getElementById('shop-coins').innerText=playerStats.coins; document.getElementById('shop-level').innerText=playerStats.level; renderShopItems(); updatePreview(); }
+
+        function closeShop() { saveGame(); document.getElementById('shop-screen').style.display='none'; document.getElementById('menu-overlay').style.display='flex'; }
+
+        
+
+        function openSkills() { document.getElementById('menu-overlay').style.display='none'; document.getElementById('skills-screen').style.display='flex'; document.getElementById('skill-coins').innerText=playerStats.coins; document.getElementById('skill-level').innerText=playerStats.level; renderSkills(); }
+
+        function closeSkills() { saveGame(); document.getElementById('skills-screen').style.display='none'; document.getElementById('menu-overlay').style.display='flex'; }
+
+        
+
+        function renderSkills() {
+
+            const sl = document.getElementById('skills-list'); sl.innerHTML='';
+
+            skillDefinitions.forEach(s => {
+
+                let div=document.createElement('div'); div.className='shop-column'; div.style.marginBottom='10px';
+
+                let owned = playerStats.skills.includes(s.id); let locked = playerStats.level < s.lvl;
+
+                let btnText = owned ? 'KUPLEHO' : (locked ? 'LVL '+s.lvl : s.price+'$');
+
+                let btnClass = owned ? 'buy-btn owned' : 'buy-btn'; let dis = owned || locked ? 'disabled' : '';
+
+                div.innerHTML = `<h3>${s.name}</h3><div style="font-size:12px; color:#aaa; margin-bottom:5px;">${s.desc}</div><button class="${btnClass}" ${dis} onclick="buySkill('${s.id}', ${s.price})">${btnText}</button>`;
+
+                sl.appendChild(div);
+
+            });
+
+        }
+
+        function buySkill(id, price) {
+
+            if(playerStats.coins >= price && !playerStats.skills.includes(id)) { playerStats.coins -= price; playerStats.skills.push(id); document.getElementById('skill-coins').innerText = playerStats.coins; renderSkills(); saveGame(); }
+
+        }
+
+
+
+        function renderShopItems() {
+
+            const al = document.getElementById('accessories-list'); al.innerHTML='';
+
+            shopItems.outfits.forEach(i => {
+
+                let div=document.createElement('div'); div.className='shop-item';
+
+                let owned=playerStats.unlockedOutfits.includes(i.id), equipped=playerStats.currentOutfit===i.id;
+
+                let btnText = owned ? (equipped ? 'V' : 'Взяти') : (i.price === 0 ? '0$' : i.price+'$');
+
+                div.innerHTML=`<span>${i.name}</span><button class="buy-btn ${equipped?'equipped':(owned?'owned':'')}" onclick="handleShopAction('outfit','${i.id}',${i.price})">${btnText}</button>`;
+
+                al.appendChild(div);
+
+            });
+
+            const wl = document.getElementById('weapons-list'); wl.innerHTML='';
+
+            shopItems.weapons.forEach(i => {
+
+                let div=document.createElement('div'); div.className='shop-item';
+
+                let owned=playerStats.unlockedWeapons.includes(i.id), locked=i.levelReq && playerStats.level < i.levelReq;
+
+                let btnText = owned ? 'V' : (locked ? 'L'+i.levelReq : i.price+'$');
+
+                div.innerHTML=`<span>${i.name}</span><button class="buy-btn ${owned?'owned':''}" onclick="handleShopAction('weapon','${i.id}',${i.price})" ${owned||locked?'disabled':''}>${btnText}</button>`;
+
+                wl.appendChild(div);
+
+            });
+
+            const pl = document.getElementById('pets-list'); pl.innerHTML='';
+
+            shopItems.pets.forEach(i => {
+
+                let div=document.createElement('div'); div.className='shop-item';
+
+                let owned=playerStats.unlockedPets.includes(i.id), equipped=playerStats.currentPet===i.id;
+
+                let locked = i.levelReq && playerStats.level < i.levelReq;
+
+                let btnText = owned ? (equipped ? 'V' : 'Взяти') : (locked ? 'LVL '+i.levelReq : i.price+'$');
+
+                let btnClass = owned ? (equipped ? 'buy-btn equipped' : 'buy-btn owned') : 'buy-btn';
+
+                let disabled = (!owned && locked) ? 'disabled' : '';
+
+                div.innerHTML=`<span>${i.name}</span><button class="${btnClass}" ${disabled} onclick="handleShopAction('pet','${i.id}',${i.price})">${btnText}</button>`;
+
+                pl.appendChild(div);
+
+            });
+
+
+
+            // Inventory Rendering
+
+            const il = document.getElementById('inventory-list'); il.innerHTML='';
+
+            if(playerStats.inventory.length === 0) il.innerHTML='Пусто...';
+
+            else {
+
+                let counts = {};
+
+                playerStats.inventory.forEach(id => { counts[id] = (counts[id] || 0) + 1; });
+
+                for(let id in counts) {
+
+                    let art = artifactTypes.find(a => a.id === id); if(!art) continue;
+
+                    let div = document.createElement('div'); div.className='shop-item';
+
+                    div.innerHTML = `<span>${art.name} x${counts[id]}</span><button class="buy-btn" onclick="sellArtifact('${id}')">SELL ${art.price}$</button>`;
+
+                    il.appendChild(div);
+
+                }
+
+            }
+
+        }
+
+        function handleShopAction(type, id, price) { 
+
+            if(type==='outfit') { if(playerStats.unlockedOutfits.includes(id)) playerStats.currentOutfit=id; else if(playerStats.coins>=price) { playerStats.coins-=price; playerStats.unlockedOutfits.push(id); playerStats.currentOutfit=id; } } 
+
+            else if(type==='weapon' && !playerStats.unlockedWeapons.includes(id)) { if(playerStats.coins>=price) { playerStats.coins-=price; playerStats.unlockedWeapons.push(id); } } 
+
+            else if(type==='pet') { if(playerStats.unlockedPets.includes(id)) playerStats.currentPet=id; else if(playerStats.coins>=price) { playerStats.coins-=price; playerStats.unlockedPets.push(id); playerStats.currentPet=id; } }
+
+            updatePreview(); renderShopItems(); document.getElementById('shop-coins').innerText=playerStats.coins; 
+
+        }
+
+        
+
+        function sellArtifact(id) {
+
+            let art = artifactTypes.find(a => a.id === id); let idx = playerStats.inventory.indexOf(id);
+
+            if(idx > -1 && art) { playerStats.inventory.splice(idx, 1); playerStats.coins += art.price; document.getElementById('shop-coins').innerText = playerStats.coins; renderShopItems(); saveGame(); }
+
+        }
+
+
+
+        // --- UPDATED PREVIEW WITH NEW OUTFITS ---
+
+        function updatePreview() { 
+
+            let c=document.getElementById('colorPicker').value; playerStats.color=c; 
+
+            pCtx.clearRect(0,0,150,150); pCtx.save(); pCtx.translate(75,75); pCtx.scale(2.5,2.5); 
+
+            pCtx.beginPath(); pCtx.arc(0,0,15,0,Math.PI*2); pCtx.fillStyle=c; pCtx.fill(); pCtx.strokeStyle='#000'; pCtx.lineWidth=1; pCtx.stroke(); 
+
+            if (playerStats.currentOutfit === 'santa_hat') { pCtx.fillStyle='#D40000'; pCtx.beginPath(); pCtx.moveTo(-15,-5); pCtx.lineTo(15,-5); pCtx.lineTo(0,-28); pCtx.fill(); pCtx.fillStyle='#FFF'; pCtx.fillRect(-16,-5,32,6); pCtx.beginPath(); pCtx.arc(0,-28,5,0,Math.PI*2); pCtx.fill(); } 
+
+            else if (playerStats.currentOutfit === 'helmet') { pCtx.fillStyle='#445533'; pCtx.beginPath(); pCtx.arc(0,0,17,Math.PI,0); pCtx.fill(); pCtx.stroke(); pCtx.fillStyle='#334422'; pCtx.fillRect(-16,-5,32,5); pCtx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(-16,0,4,14); ctx.fillRect(12,0,4,14); } 
+
+            else if (playerStats.currentOutfit === 'vest') { pCtx.fillStyle='#111'; pCtx.fillRect(-16,-16,32,32); pCtx.fillStyle='#2E3B22'; pCtx.fillRect(-14,-14,28,28); pCtx.fillStyle='#4A5D3A'; pCtx.fillRect(-10,2,8,10); pCtx.fillRect(2,2,8,10); pCtx.strokeStyle='#111'; pCtx.strokeRect(-14,-14,28,28); } 
+
+            else if (playerStats.currentOutfit === 'full_armor') { pCtx.fillStyle='#222'; pCtx.beginPath(); pCtx.arc(0,0,18,0,Math.PI*2); pCtx.fill(); pCtx.fillStyle='#444'; pCtx.fillRect(-14,-14,28,28); pCtx.fillStyle='red'; pCtx.fillRect(-5,-5,10,2); } 
+
+            else if (playerStats.currentOutfit === 'chain') { pCtx.strokeStyle='#FFD700'; pCtx.lineWidth=2; pCtx.beginPath(); pCtx.arc(0,0,12,0,Math.PI*2); pCtx.stroke(); } 
+
+            else if (playerStats.currentOutfit === 'cap') { pCtx.fillStyle='#C2B280'; pCtx.beginPath(); pCtx.arc(0,0,15,Math.PI*0.8,Math.PI*3.2); pCtx.fill(); pCtx.fillStyle='#A09165'; pCtx.fillRect(13,-13,14,26); } 
+
+            else if (playerStats.currentOutfit === 'nvg') { pCtx.fillStyle='#333'; pCtx.fillRect(-14,-12,28,8); pCtx.fillStyle='#0F0'; pCtx.beginPath(); ctx.arc(-6,-8,4,0,Math.PI*2); ctx.arc(6,-8,4,0,Math.PI*2); ctx.fill(); }
+
+            else if (playerStats.currentOutfit === 'crown') { pCtx.fillStyle='#FFD700'; pCtx.beginPath(); pCtx.moveTo(-12,-10); pCtx.lineTo(-12,-20); pCtx.lineTo(-6,-15); pCtx.lineTo(0,-22); pCtx.lineTo(6,-15); pCtx.lineTo(12,-20); pCtx.lineTo(12,-10); pCtx.closePath(); pCtx.fill(); pCtx.strokeStyle='#DAA520'; pCtx.stroke(); }
+
+            pCtx.fillStyle='#000'; pCtx.fillRect(10,-3,15,6); pCtx.restore(); 
+
+        }
+
+
 
         // --- PLATFORM SELECTION ---
+
         function selectPlatform(mode) {
+
             controlMode = mode;
+
             document.getElementById('platform-screen').style.display = 'none';
+
             loadGame(); showMainMenu(); setupMobileWeapons();
-            
+
             if(mode === 'MOBILE') {
-                // АКТИВУЄМО МОБІЛЬНИЙ РЕЖИМ (ЗМІНЮЄМО CSS)
+
                 document.body.classList.add('mobile-mode');
+
                 document.getElementById('mobile-controls').style.display='block';
+
                 document.getElementById('weapon-info').style.display='none';
+
+                document.getElementById('btn-hud-edit').style.display='inline-block';
+
             } else {
-                // ВИМИКАЄМО МОБІЛЬНИЙ РЕЖИМ (ПОВЕРТАЄМО СТАНДАРТ)
+
                 document.body.classList.remove('mobile-mode');
+
                 document.getElementById('mobile-controls').style.display='none';
+
                 document.getElementById('weapon-info').style.display='block';
+
+                document.getElementById('btn-hud-edit').style.display='none';
+
             }
-            // Перемальовуємо магазин з новими стилями
-            if(document.getElementById('shop-screen').style.display === 'flex') {
-                renderShopItems();
-            }
+
         }
 
+
+
         const PLAYER_SPEED = 4.5; const BULLET_SPEED = 14; const ENEMY_SPEED = 1.5; 
+
         let controlMode = 'PC'; let gameState = 'PLATFORM_SELECT'; let currentMissionId = 0;
+
         let gameTime = 0; let enemiesKilled = 0; let grenadesKilled = 0; let bossSpawned = false;
+
         let zoneTimer = 0; let captureZone = { x: 0, y: 0, radius: 100 }; let screenShake = 0;
-        let obstacles = []; let bullets = []; let enemies = []; let particles = []; let drops = []; let thrownGrenades = []; let decorations = []; let snowflakes = []; let player;
+
+        let obstacles = []; let bullets = []; let enemies = []; let particles = []; let drops = []; let thrownGrenades = []; let decorations = []; let snowflakes = []; let player; 
+
+        let activePets = []; // CHANGED to Array for Mega Mode
+
+        let remotePlayers = {}; 
+
         let keys = {}; let mouse = { x: 0, y: 0, down: false };
+
         let joystickLeft = { x: 0, y: 0, active: false, id: null }; let joystickRight = { x: 0, y: 0, active: false, id: null }; let lastAimAngle = 0;
+
         for(let i=0; i<60; i++) snowflakes.push({ x: Math.random()*window.innerWidth, y: Math.random()*window.innerHeight, r: Math.random()*2+0.5, s: Math.random()*1+0.2 });
 
-        class DropItem { constructor(x, y, type) { this.x = x; this.y = y; this.type = type; this.size = 20; this.bobOffset = Math.random()*Math.PI*2; } draw() { let bob = Math.sin(gameTime * 5 + this.bobOffset) * 3; let Y = this.y + bob; if (this.type === 'medkit') { ctx.fillStyle = '#00CC00'; ctx.fillRect(this.x-10, Y-10, 20, 20); ctx.fillStyle = '#FFF'; ctx.fillRect(this.x-3, Y-8, 6, 16); ctx.fillRect(this.x-8, Y-3, 16, 6); } else if (this.type === 'grenade') { ctx.fillStyle = '#FFA500'; ctx.fillRect(this.x-10, Y-10, 20, 20); ctx.fillStyle='#000'; ctx.font="16px Arial"; ctx.fillText("💣", this.x-9, Y+6); } else if (this.type === 'coin') { ctx.fillStyle='#FFFF00'; ctx.beginPath(); ctx.arc(this.x, Y, 10, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle='#DAA520'; ctx.lineWidth=2; ctx.stroke(); ctx.fillStyle='#000'; ctx.font="bold 14px Arial"; ctx.fillText("$", this.x-4, Y+5); } } }
+
+
+        // --- PEERJS ---
+
+        let peer = null; let connections = []; let myPeerId = null; let isHost = false;
+
+        function openMultiplayer() { document.getElementById('menu-overlay').style.display='none'; document.getElementById('multiplayer-screen').style.display='flex'; if(!peer) initPeer(); }
+
+        function closeMultiplayer() { document.getElementById('multiplayer-screen').style.display='none'; document.getElementById('menu-overlay').style.display='flex'; }
+
+        function initPeer() { peer = new Peer(); peer.on('open', (id) => { myPeerId = id; document.getElementById('my-peer-id').innerText = id; document.getElementById('mp-status').innerText = "Online. Waiting..."; document.getElementById('mp-status').style.color = "#00FF00"; isHost = true; }); peer.on('connection', (conn) => { isHost = true; setupConnection(conn); alert("Player Joined!"); }); peer.on('error', (err) => { document.getElementById('mp-status').innerText = "Error!"; }); }
+
+        function copyId() { navigator.clipboard.writeText(myPeerId).then(()=>alert("ID copied!")); }
+
+        function joinPeerGame() { let id = document.getElementById('join-peer-id').value.trim(); if(!id) return; document.getElementById('mp-status').innerText = "Connecting..."; let conn = peer.connect(id); isHost = false; setupConnection(conn); }
+
+        function setupConnection(conn) { conn.on('open', () => { connections.push(conn); document.getElementById('mp-status').innerText = "CONNECTED!"; startMission('ONLINE'); }); conn.on('data', (data) => { handleNetworkData(data); }); conn.on('close', () => { alert("Lost Conn"); connections = connections.filter(c => c !== conn); }); }
+
+        function sendNetworkData(data) { connections.forEach(c => c.send(data)); }
+
+        function handleNetworkData(data) { if(data.type === 'move') { remotePlayers[data.id] = data; remotePlayers[data.id].lastUpdate = Date.now(); } else if(data.type === 'shoot') { bullets.push(new Bullet(data.x, data.y, data.vel, false, data.dmg, 4, data.wType)); } else if(data.type === 'spawnEnemy' && !isHost) { enemies.push(new Enemy(data.x, data.y, data.kind)); } }
+
+
+
+        // --- PET CLASS ---
+
+        class Pet {
+
+            constructor(type, offsetIndex = 0) {
+
+                this.type = type; this.x = player.x; this.y = player.y;
+
+                this.cooldown = 0; this.frame = 0; this.angle = 0;
+
+                this.offsetIndex = offsetIndex; // To prevent them stacking perfectly
+
+            }
+
+            update() {
+
+                this.frame++;
+
+                let floatSpeed = 2 + (this.offsetIndex * 0.5);
+
+                let angleOff = this.offsetIndex * (Math.PI/3); 
+
+                
+
+                let tx = player.x + Math.cos(gameTime*floatSpeed + angleOff)*45; 
+
+                let ty = player.y + Math.sin(gameTime*floatSpeed + angleOff)*45 - 20; 
+
+                
+
+                if(this.type === 'turret') { 
+
+                     // Turrets stay a bit further back
+
+                     tx = player.x - Math.cos(player.angle + angleOff)*50; 
+
+                     ty = player.y - Math.sin(player.angle + angleOff)*50; 
+
+                } 
+
+                
+
+                this.x += (tx - this.x) * 0.08;
+
+                this.y += (ty - this.y) * 0.08;
+
+
+
+                if(this.cooldown > 0) this.cooldown--;
+
+
+
+                let nearest = null; let minD = 300;
+
+                enemies.forEach(e => { let d = Math.hypot(e.x - this.x, e.y - this.y); if(d < minD) { minD = d; nearest = e; } });
+
+
+
+                if(nearest) this.angle = Math.atan2(nearest.y - this.y, nearest.x - this.x);
+
+
+
+                if(nearest && this.cooldown <= 0) {
+
+                    if(this.type === 'drone') {
+
+                        bullets.push(new Bullet(this.x, this.y, {x:Math.cos(this.angle)*10, y:Math.sin(this.angle)*10}, false, 15, 2, 'laser'));
+
+                        this.cooldown = 60;
+
+                    } else if (this.type === 'slime') {
+
+                        bullets.push(new Bullet(this.x, this.y, {x:Math.cos(this.angle)*8, y:Math.sin(this.angle)*8}, false, 5, 5, 'slime'));
+
+                        this.cooldown = 30;
+
+                    } else if (this.type === 'ufo') {
+
+                        bullets.push(new Bullet(this.x, this.y, {x:Math.cos(this.angle)*12, y:Math.sin(this.angle)*12}, false, 30, 4, 'plasma'));
+
+                        this.cooldown = 90;
+
+                    } else if (this.type === 'wisp') {
+
+                         bullets.push(new Bullet(this.x, this.y, {x:Math.cos(this.angle)*7, y:Math.sin(this.angle)*7}, false, 20, 4, 'soul'));
+
+                         this.cooldown = 70;
+
+                    } else if (this.type === 'turret') {
+
+                         bullets.push(new Bullet(this.x, this.y, {x:Math.cos(this.angle)*15, y:Math.sin(this.angle)*15}, false, 8, 2, 'normal'));
+
+                         this.cooldown = 15;
+
+                         screenShake = 1;
+
+                    }
+
+                }
+
+            }
+
+            draw() {
+
+                ctx.save(); ctx.translate(this.x, this.y);
+
+                if(this.type === 'drone') {
+
+                    ctx.fillStyle = '#555'; ctx.beginPath(); ctx.arc(0,0,10,0,Math.PI*2); ctx.fill(); 
+
+                    ctx.fillStyle = 'cyan'; ctx.beginPath(); ctx.arc(0,0,4,0,Math.PI*2); ctx.fill(); 
+
+                    ctx.strokeStyle = '#333'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-15,0); ctx.lineTo(15,0); ctx.moveTo(0,-15); ctx.lineTo(0,15); ctx.stroke(); 
+
+                    ctx.fillStyle = '#888'; let off = Math.sin(this.frame*0.5)*5;
+
+                    ctx.fillRect(-18,-2,6,4); ctx.fillRect(12,-2,6,4); ctx.fillRect(-2,-18,4,6); ctx.fillRect(-2,12,4,6);
+
+                } else if(this.type === 'slime') {
+
+                    ctx.fillStyle = '#00FF00'; ctx.globalAlpha = 0.7; let s = 10 + Math.sin(this.frame*0.1)*2; ctx.beginPath(); ctx.arc(0,0,s,0,Math.PI*2); ctx.fill();
+
+                    ctx.fillStyle = '#000'; ctx.globalAlpha = 1; ctx.beginPath(); ctx.arc(-3,-2,2,0,Math.PI*2); ctx.arc(3,-2,2,0,Math.PI*2); ctx.fill();
+
+                } else if(this.type === 'ufo') {
+
+                    ctx.fillStyle = '#AAA'; ctx.beginPath(); ctx.ellipse(0, 5, 15, 5, 0, 0, Math.PI*2); ctx.fill(); 
+
+                    ctx.fillStyle = 'rgba(0,255,255,0.5)'; ctx.beginPath(); ctx.arc(0,0,8,Math.PI,0); ctx.fill(); 
+
+                    ctx.fillStyle = this.frame%20<10 ? 'red':'lime'; ctx.fillRect(-5,5,2,2); ctx.fillRect(0,7,2,2); ctx.fillRect(5,5,2,2);
+
+                } else if(this.type === 'wisp') {
+
+                    let g = ctx.createRadialGradient(0,0,2,0,0,15); g.addColorStop(0, 'white'); g.addColorStop(0.5, 'cyan'); g.addColorStop(1, 'transparent');
+
+                    ctx.fillStyle = g; ctx.globalAlpha = 0.8 + Math.sin(this.frame*0.1)*0.2; ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
+
+                } else if(this.type === 'turret') {
+
+                    ctx.rotate(this.angle);
+
+                    ctx.fillStyle = '#444'; ctx.fillRect(-12,-8,24,16); // Base
+
+                    ctx.fillStyle = '#222'; ctx.fillRect(-14,-10,28,4); ctx.fillRect(-14,6,28,4); // Treads
+
+                    ctx.fillStyle = '#666'; ctx.beginPath(); ctx.arc(0,0,7,0,Math.PI*2); ctx.fill(); // Turret
+
+                    ctx.fillStyle = '#111'; ctx.fillRect(0,-3,15,6); // Barrel
+
+                }
+
+                ctx.restore();
+
+            }
+
+        }
+
+
+
+        // --- ARTIFACT VISUALS ---
+
+        class DropItem { constructor(x, y, type, aType) { this.x = x; this.y = y; this.type = type; this.artifactType=aType; this.size = 20; this.bobOffset = Math.random()*Math.PI*2; } draw() { let bob = Math.sin(gameTime * 5 + this.bobOffset) * 3; let Y = this.y + bob; 
+
+            ctx.save(); ctx.translate(this.x, Y);
+
+            if(this.type==='artifact') { 
+
+                if(this.artifactType === 'rusty_gear') { 
+
+                    ctx.fillStyle='#8B4513'; ctx.beginPath(); ctx.arc(0,0,10,0,Math.PI*2); ctx.fill();
+
+                    ctx.fillStyle='#A0522D'; for(let i=0;i<8;i++){ctx.rotate(Math.PI/4); ctx.fillRect(8,-3,6,6);} ctx.beginPath(); ctx.arc(0,0,5,0,Math.PI*2); ctx.fillStyle='#5A3A22'; ctx.fill();
+
+                } else if(this.artifactType === 'ancient_coin') { 
+
+                    let g = ctx.createRadialGradient(0,0,5,0,0,12); g.addColorStop(0,'#FFD700'); g.addColorStop(1,'#DAA520');
+
+                    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle='#B8860B'; ctx.lineWidth=2; ctx.stroke(); ctx.fillStyle='#B8860B'; ctx.font='bold 14px serif'; ctx.textAlign='center'; ctx.fillText('A', 0, 5);
+
+                } else if(this.artifactType === 'blue_crystal') { 
+
+                    let g = ctx.createLinearGradient(-10,-15,10,15); g.addColorStop(0,'#00FFFF'); g.addColorStop(1,'#0000FF');
+
+                    ctx.fillStyle=g; ctx.shadowBlur=15; ctx.shadowColor='cyan'; ctx.beginPath(); ctx.moveTo(0, -15); ctx.lineTo(10, 0); ctx.lineTo(0, 15); ctx.lineTo(-10, 0); ctx.fill();
+
+                } else if(this.artifactType === 'gold_idol') { 
+
+                    let g = ctx.createLinearGradient(-8,0,8,0); g.addColorStop(0,'#FFD700'); g.addColorStop(1,'#B8860B');
+
+                    ctx.fillStyle=g; ctx.fillRect(-8, -15, 16, 30); ctx.fillStyle='#000'; ctx.fillRect(-3, -10, 2, 2); ctx.fillRect(1, -10, 2, 2); ctx.fillRect(-4,-2,8,2);
+
+                } else if (this.artifactType === 'alien_circuit') {
+
+                    ctx.fillStyle='#113311'; ctx.fillRect(-12,-12,24,24); ctx.strokeStyle='#00FF00'; ctx.lineWidth=2; ctx.shadowBlur=5; ctx.shadowColor='lime';
+
+                    ctx.beginPath(); ctx.moveTo(-10,-10); ctx.lineTo(0,-5); ctx.lineTo(10,-10); ctx.moveTo(-10,10); ctx.lineTo(0,5); ctx.lineTo(10,10); ctx.stroke();
+
+                } else if (this.artifactType === 'dragon_scale') {
+
+                    let g = ctx.createLinearGradient(0,-15,0,15); g.addColorStop(0,'#FF4500'); g.addColorStop(1,'#8B0000');
+
+                    ctx.fillStyle=g; ctx.beginPath(); ctx.moveTo(0,-15); ctx.quadraticCurveTo(15, -5, 0, 15); ctx.quadraticCurveTo(-15, -5, 0, -15); ctx.fill(); ctx.strokeStyle='#FFD700'; ctx.lineWidth=1; ctx.stroke();
+
+                }
+
+            } else if (this.type === 'medkit') { ctx.fillStyle = '#00CC00'; ctx.fillRect(-10, -10, 20, 20); ctx.fillStyle = '#FFF'; ctx.fillRect(-3, -8, 6, 16); ctx.fillRect(-8, -3, 16, 6); } 
+
+            else if (this.type === 'grenade') { ctx.fillStyle = '#FFA500'; ctx.beginPath(); ctx.arc(0,0,8,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#000'; ctx.fillRect(-2,-12,4,6); } 
+
+            else if (this.type === 'coin') { ctx.fillStyle='#FFFF00'; ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle='#DAA520'; ctx.lineWidth=2; ctx.stroke(); ctx.fillStyle='#000'; ctx.font="bold 14px Arial"; ctx.textAlign='center'; ctx.fillText("$", 0, 5); } 
+
+            ctx.restore();
+
+        } }
+
+        
+
         class GrenadeObj { constructor(x, y, tx, ty) { this.x = x; this.y = y; this.timer = 60; this.dead = false; const angle = Math.atan2(ty - y, tx - x); const dist = Math.hypot(tx - x, ty - y); const speed = Math.min(dist / 20, 10); this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed; this.flyTime = Math.floor(dist / speed); } update() { if (this.flyTime > 0) { this.x += this.vx; this.y += this.vy; this.flyTime--; } this.timer--; if (this.timer <= 0) { this.explode(); this.dead = true; } } explode() { createExplosion(this.x, this.y); screenShake = 15; enemies.forEach(en => { if (Math.hypot(en.x - this.x, en.y - this.y) < 120) { en.takeDamage(150); if (en.hp <= 0) grenadesKilled++; } }); } draw() { ctx.beginPath(); ctx.arc(this.x, this.y, 6, 0, Math.PI*2); ctx.fillStyle = Math.floor(this.timer/5)%2===0 ? 'red' : 'yellow'; ctx.fill(); ctx.strokeStyle='#000'; ctx.stroke(); } }
+
         class Rect { constructor(x, y, size) { this.x = x; this.y = y; this.size = size; } draw() { ctx.fillStyle = '#556'; ctx.fillRect(this.x, this.y, this.size, this.size); ctx.fillStyle = '#EEF'; ctx.beginPath(); ctx.moveTo(this.x-2, this.y); ctx.lineTo(this.x+this.size+2, this.y); ctx.lineTo(this.x+this.size+2, this.y+15); for(let i=0; i<this.size; i+=10) ctx.arc(this.x+this.size-i, this.y+15, 5, 0, Math.PI); ctx.lineTo(this.x-2, this.y+15); ctx.fill(); ctx.strokeStyle='#223'; ctx.lineWidth=2; ctx.strokeRect(this.x, this.y, this.size, this.size); } }
+
         class Entity { constructor(x, y, radius, color, hp) { this.x=x; this.y=y; this.radius=radius; this.color=color; this.hp=hp; this.maxHp=hp; this.dead=false; this.cooldown=0; } drawBase() { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2); ctx.fillStyle=this.color; ctx.fill(); ctx.strokeStyle='#000'; ctx.lineWidth=2; ctx.stroke(); } drawHealthBar() { if (this.hp < this.maxHp || this instanceof Player) { ctx.save(); ctx.fillStyle = '#FFFFFF'; ctx.font = "bold 12px Courier New"; ctx.textAlign = "center"; ctx.shadowColor = "black"; ctx.shadowBlur = 4; ctx.fillText(Math.ceil(this.hp), this.x, this.y - this.radius - 15); ctx.restore(); } if (this.hp < this.maxHp) { let w = this.radius * 2; ctx.fillStyle='red'; ctx.fillRect(this.x-w/2, this.y-this.radius-10, w, 4); ctx.fillStyle='#00FF00'; ctx.fillRect(this.x-w/2, this.y-this.radius-10, w*(this.hp/this.maxHp), 4); } } move(dx, dy) { if (!this.checkWallCollision(this.x+dx, this.y)) this.x+=dx; if (!this.checkWallCollision(this.x, this.y+dy)) this.y+=dy; this.x=Math.max(this.radius, Math.min(canvas.width-this.radius, this.x)); this.y=Math.max(this.radius, Math.min(canvas.height-this.radius, this.y)); } checkWallCollision(x, y) { for (let obs of obstacles) { let cx=Math.max(obs.x, Math.min(x, obs.x+obs.size)); let cy=Math.max(obs.y, Math.min(y, obs.y+obs.size)); if ((x-cx)**2 + (y-cy)**2 < this.radius**2) return true; } return false; } }
-        class Player extends Entity { constructor(x, y) { super(x, y, 15, playerStats.color, 100); this.weapon='pistol'; this.grenades=3; this.grenadeCooldown=0; this.angle=0; this.muzzleTimer=0; } draw() { ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle); ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI*2); ctx.fillStyle=playerStats.color; ctx.fill(); ctx.strokeStyle='#000'; ctx.lineWidth=2; ctx.stroke(); if (playerStats.currentOutfit === 'santa_hat') { ctx.fillStyle='#D40000'; ctx.beginPath(); ctx.moveTo(-15,-5); ctx.lineTo(15,-5); ctx.lineTo(0,-28); ctx.fill(); ctx.fillStyle='#FFF'; ctx.fillRect(-16,-5,32,6); ctx.beginPath(); ctx.arc(0,-28,5,0,Math.PI*2); ctx.fill(); } else if (playerStats.currentOutfit === 'helmet') { ctx.fillStyle='#334400'; ctx.beginPath(); ctx.arc(0,0,16,Math.PI,0); ctx.fill(); ctx.fillStyle='#223300'; ctx.fillRect(-15,-5,30,5); } else if (playerStats.currentOutfit === 'vest') { ctx.fillStyle='#2E3B22'; ctx.fillRect(-14,-14,28,28); ctx.fillStyle='#4A5D3A'; ctx.fillRect(-10,2,8,10); ctx.fillRect(2,2,8,10); } else if (playerStats.currentOutfit === 'cap') { ctx.fillStyle='#C2B280'; ctx.beginPath(); ctx.arc(0,0,15,Math.PI*0.8,Math.PI*3.2); ctx.fill(); ctx.fillStyle='#A09165'; ctx.fillRect(13,-13,14,26); } if (this.weapon === 'snowball') { ctx.fillStyle='#00FFFF'; ctx.fillRect(10,-5,20,10); ctx.fillStyle='#FFF'; ctx.fillRect(12,-7,10,14); ctx.beginPath(); ctx.arc(10,0,5,0,Math.PI*2); ctx.fillStyle='#88FFFF'; ctx.fill(); } else { ctx.fillStyle='#000'; ctx.fillRect(10,-3,15,6); } if (this.muzzleTimer > 0) { ctx.beginPath(); ctx.arc(this.weapon==='snowball'?35:28, 0, 8+Math.random()*5, 0, Math.PI*2); ctx.fillStyle=this.weapon==='snowball'?`rgba(200,255,255,${this.muzzleTimer/3})`:`rgba(255,255,0,${this.muzzleTimer/3})`; ctx.fill(); this.muzzleTimer--; } ctx.restore(); } update() { if (this.cooldown > 0) this.cooldown--; if (this.grenadeCooldown > 0) this.grenadeCooldown--; let dx=0, dy=0; if (activeCheats.aim && enemies.length > 0) { let closest=null, minDist=Infinity; enemies.forEach(e=>{ let d=Math.hypot(e.x-this.x, e.y-this.y); if(d<minDist){minDist=d; closest=e;} }); if(closest) { this.angle=Math.atan2(closest.y-this.y, closest.x-this.x); lastAimAngle=this.angle; } } if (activeCheats.autoloot && drops.length > 0) { this.x=drops[0].x; this.y=drops[0].y; } if (controlMode === 'PC') { if (keys['Digit1']) this.trySetWeapon('pistol'); if (keys['Digit2']) this.trySetWeapon('rifle'); if (keys['Digit3']) this.trySetWeapon('shotgun'); if (keys['Digit4']) this.trySetWeapon('sniper'); if (keys['Digit5']) this.trySetWeapon('minigun'); if (keys['Digit6']) this.trySetWeapon('snowball'); if (keys['Space']) this.throwGrenade(mouse.x, mouse.y); if (keys['KeyW'] || keys['ArrowUp']) dy = -PLAYER_SPEED; if (keys['KeyS'] || keys['ArrowDown']) dy = PLAYER_SPEED; if (keys['KeyA'] || keys['ArrowLeft']) dx = -PLAYER_SPEED; if (keys['KeyD'] || keys['ArrowRight']) dx = PLAYER_SPEED; if (dx && dy) { dx *= 0.707; dy *= 0.707; } if (!activeCheats.aim) { this.angle = Math.atan2(mouse.y-this.y, mouse.x-this.x); lastAimAngle=this.angle; } if (mouse.down) this.shootInput(this.angle); } else { if (joystickLeft.active) { dx = joystickLeft.x * PLAYER_SPEED; dy = joystickLeft.y * PLAYER_SPEED; } if (joystickRight.active) { if (!activeCheats.aim) { this.angle = Math.atan2(joystickRight.y, joystickRight.x); lastAimAngle=this.angle; } this.shootInput(this.angle); } else if ((dx !== 0 || dy !== 0) && !activeCheats.aim) { this.angle = Math.atan2(dy, dx); } } this.move(dx, dy); } trySetWeapon(wpn) { if (wpn === 'minigun' && playerStats.level < 5) return; if (playerStats.unlockedWeapons.includes(wpn)) { this.weapon = wpn; updateUI(); } } throwGrenade(tx, ty) { if (this.grenades > 0 && this.grenadeCooldown <= 0) { this.grenades--; this.grenadeCooldown=60; thrownGrenades.push(new GrenadeObj(this.x, this.y, tx, ty)); updateUI(); } } shootInput(angle) { if (this.cooldown > 0) return; this.muzzleTimer=3; if (this.weapon==='shotgun'||this.weapon==='sniper') screenShake=5; if (this.weapon==='pistol') this.spawnBullet(angle, 0, 20, 20); else if (this.weapon==='rifle') this.spawnBullet(angle, (Math.random()-0.5)*0.2, 10, 6); else if (this.weapon==='shotgun') { this.spawnBullet(angle,0,15,45); this.spawnBullet(angle+0.15,0,15,45); this.spawnBullet(angle-0.15,0,15,45); } else if (this.weapon==='sniper') this.spawnBullet(angle, 0, 100, 60, 25); else if (this.weapon==='minigun') { this.spawnBullet(angle, (Math.random()-0.5)*0.4, 8, 3); screenShake=2; } else if (this.weapon==='snowball') this.spawnBullet(angle, 0, 10000, 30, 10, 'snowball'); } spawnBullet(angle, spread, dmg, cd, speed=BULLET_SPEED, type='normal') { const finalAngle = angle+spread; const vel = {x:Math.cos(finalAngle)*speed, y:Math.sin(finalAngle)*speed}; let r=4; if(typeof type!=='string') r=type; bullets.push(new Bullet(this.x, this.y, vel, false, dmg, r, typeof type==='string'?type:null)); this.cooldown=cd; } }
-        class Enemy extends Entity { constructor(x, y, type) { let r=15, hp=40, c='#FF3333', s=ENEMY_SPEED; if(type==='boss') { r=40; hp=600; c='#A020F0'; s=1.2; } if(currentMissionId===6) s*=1.4; if(currentMissionId===8) s*=1.2; super(x, y, r, c, hp); this.type=type; this.speed=s; } draw() { let a=0; if(player&&!player.dead) a=Math.atan2(player.y-this.y, player.x-this.x); ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(a); let ox=this.x; let oy=this.y; this.x=0; this.y=0; super.drawBase(); this.x=ox; this.y=oy; ctx.fillStyle=this.type==='boss'?'#4A004A':'#550000'; ctx.fillRect(this.radius-2, -(this.type==='boss'?5:3), this.type==='boss'?25:15, this.type==='boss'?10:6); ctx.restore(); this.drawHealthBar(); } update() { if (this.cooldown>0) this.cooldown--; const dist=Math.hypot(player.x-this.x, player.y-this.y); const angle=Math.atan2(player.y-this.y, player.x-this.x); if (currentMissionId===11) { if (dist>500) this.move(Math.cos(angle)*0.5, Math.sin(angle)*0.5); } else { if (dist > 150+this.radius) this.move(Math.cos(angle)*this.speed, Math.sin(angle)*this.speed); else if (dist < 100) this.move(-Math.cos(angle)*this.speed*0.5, -Math.sin(angle)*this.speed*0.5); } let shootDist = this.type==='boss'?600:400; let chance = this.type==='boss'?0.1:0.03; if(currentMissionId===11) chance=0.08; if (dist<shootDist && Math.random()<chance) { const shotA = angle + (Math.random()-0.5)*(currentMissionId===11?0.05:0.3); let dmg=10, bSpeed=BULLET_SPEED, bRad=4; if(this.type==='boss'){dmg=25;bRad=8;} if(currentMissionId===11){dmg=30;bSpeed=20;} bullets.push(new Bullet(this.x, this.y, {x:Math.cos(shotA)*bSpeed, y:Math.sin(shotA)*bSpeed}, true, dmg, bRad)); this.cooldown=40; } } takeDamage(amount) { this.hp-=amount; if(this.hp<=0 && !this.dead) { this.dead=true; createParticles(this.x, this.y, this.color); playerStats.totalKills++; addPlayerXp(this.type==='boss'?100:10); let r=Math.random(); let gC=(currentMissionId===8||currentMissionId===7)?0.4:0.15; if(r<0.3) drops.push(new DropItem(this.x+10, this.y, 'coin')); if(r<gC) drops.push(new DropItem(this.x, this.y, 'grenade')); else if(r<gC+0.3) drops.push(new DropItem(this.x, this.y, 'medkit')); } } }
-        class Bullet { constructor(x, y, vel, isEnemy, dmg, radius=4, specialType=null) { this.x=x; this.y=y; this.vel=vel; this.isEnemy=isEnemy; this.dmg=dmg; this.radius=radius; this.specialType=specialType; if(specialType==='snowball') this.radius=8; this.dead=false; } update() { this.x+=this.vel.x; this.y+=this.vel.y; if (!(activeCheats.wallbang && !this.isEnemy)) { for(let obs of obstacles) if(this.x>obs.x && this.x<obs.x+obs.size && this.y>obs.y && this.y<obs.y+obs.size) { this.dead=true; if(this.specialType==='snowball') this.explode(); else createParticles(this.x,this.y,'#888'); return; } } if(this.x<0||this.x>canvas.width||this.y<0||this.y>canvas.height) this.dead=true; } draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2); if(this.specialType==='snowball') { ctx.fillStyle='#FFF'; ctx.shadowBlur=10; ctx.shadowColor='white'; } else { ctx.fillStyle=this.isEnemy?(this.radius>4?'#A020F0':'orange'):'#FFFF00'; ctx.shadowBlur=0; } ctx.fill(); ctx.shadowBlur=0; } explode() { createExplosion(this.x, this.y); enemies.forEach(en => { if(Math.hypot(en.x-this.x, en.y-this.y)<100) en.takeDamage(10000); }); } }
+
+        
+
+        // --- PLAYER CLASS ---
+
+        class Player extends Entity { 
+
+            constructor(x, y) { 
+
+                let hp = 100;
+
+                // STANDARD MODE
+
+                if(!megaEquipMode) {
+
+                    if(playerStats.currentOutfit === 'helmet') hp += 50; if(playerStats.currentOutfit === 'vest') hp += 100; if(playerStats.currentOutfit === 'full_armor') hp += 250;
+
+                    if(playerStats.currentOutfit === 'nvg') hp += 80; if(playerStats.currentOutfit === 'crown') hp += 300;
+
+                } else {
+
+                    // MEGA MODE: ALL BONUSES
+
+                    hp += 50 + 100 + 250 + 80 + 300; // Total 780 + 100 = 880 HP
+
+                }
+
+                
+
+                super(x, y, 15, playerStats.color, hp); 
+
+                this.weapon='pistol'; this.grenades=3; this.grenadeCooldown=0; this.angle=0; this.muzzleTimer=0; this.regenTimer=0;
+
+                this.speedMult = playerStats.skills.includes('speed') ? 1.15 : 1.0;
+
+            } 
+
+            draw() { 
+
+                ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle); 
+
+                ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI*2); ctx.fillStyle=playerStats.color; ctx.fill(); ctx.strokeStyle='#000'; ctx.lineWidth=2; ctx.stroke(); 
+
+                
+
+                // Outfit Visuals Helper
+
+                const drawOutfit = (type) => {
+
+                    if (type === 'santa_hat') { ctx.fillStyle='#D40000'; ctx.beginPath(); ctx.moveTo(-15,-5); ctx.lineTo(15,-5); ctx.lineTo(0,-28); ctx.fill(); ctx.fillStyle='#FFF'; ctx.fillRect(-16,-5,32,6); ctx.beginPath(); ctx.arc(0,-28,5,0,Math.PI*2); ctx.fill(); } 
+
+                    else if (type === 'helmet') { ctx.fillStyle='#445533'; ctx.beginPath(); ctx.arc(0,0,17,Math.PI,0); ctx.fill(); ctx.stroke(); ctx.fillStyle='#334422'; ctx.fillRect(-16,-5,32,5); ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(-16,0,4,14); ctx.fillRect(12,0,4,14); } 
+
+                    else if (type === 'vest') { ctx.fillStyle='#111'; ctx.fillRect(-16,-16,32,32); ctx.fillStyle='#2E3B22'; ctx.fillRect(-14,-14,28,28); ctx.fillStyle='#4A5D3A'; ctx.fillRect(-10,2,8,10); ctx.fillRect(2,2,8,10); ctx.strokeStyle='black'; ctx.strokeRect(-14,-14,28,28); } 
+
+                    else if (type === 'full_armor') { ctx.fillStyle='#222'; ctx.beginPath(); ctx.arc(0,0,18,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#444'; ctx.fillRect(-14,-14,28,28); ctx.fillStyle='red'; ctx.fillRect(-5,-5,10,2); } 
+
+                    else if (type === 'chain') { ctx.strokeStyle='#FFD700'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(0,0,12,0,Math.PI*2); ctx.stroke(); } 
+
+                    else if (type === 'cap') { ctx.fillStyle='#C2B280'; ctx.beginPath(); ctx.arc(0,0,15,Math.PI*0.8,Math.PI*3.2); ctx.fill(); ctx.fillStyle='#A09165'; ctx.fillRect(13,-13,14,26); }
+
+                    else if (type === 'nvg') { ctx.fillStyle='#333'; ctx.fillRect(-14,-12,28,8); ctx.fillStyle='#0F0'; ctx.beginPath(); ctx.arc(-6,-8,4,0,Math.PI*2); ctx.arc(6,-8,4,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=10; ctx.shadowColor='#0F0'; ctx.shadowBlur=0; }
+
+                    else if (type === 'crown') { ctx.fillStyle='#FFD700'; ctx.beginPath(); ctx.moveTo(-12,-10); ctx.lineTo(-12,-20); ctx.lineTo(-6,-15); ctx.lineTo(0,-22); ctx.lineTo(6,-15); ctx.lineTo(12,-20); ctx.lineTo(12,-10); ctx.closePath(); ctx.fill(); ctx.strokeStyle='#DAA520'; ctx.stroke(); }
+
+                };
+
+
+
+                if (megaEquipMode) {
+
+                    // Draw ALL items stacked
+
+                    drawOutfit('vest'); 
+
+                    drawOutfit('full_armor');
+
+                    drawOutfit('chain');
+
+                    drawOutfit('helmet');
+
+                    drawOutfit('cap');
+
+                    drawOutfit('nvg');
+
+                    drawOutfit('santa_hat');
+
+                    drawOutfit('crown'); // Crown on top
+
+                } else {
+
+                    drawOutfit(playerStats.currentOutfit);
+
+                }
+
+
+
+                // Weapon Visuals
+
+                if (this.weapon === 'snowball') { ctx.fillStyle='#00FFFF'; ctx.fillRect(10,-5,20,10); ctx.fillStyle='#FFF'; ctx.fillRect(12,-7,10,14); } 
+
+                else if (this.weapon === 'bazooka') { ctx.fillStyle='#004400'; ctx.fillRect(0, -8, 40, 16); ctx.fillStyle='#000'; ctx.fillRect(35, -9, 5, 18); } 
+
+                else if (this.weapon === 'laser' || this.weapon === 'plasma') { ctx.fillStyle=this.weapon==='laser'?'#999':'#4488FF'; ctx.fillRect(5, -4, 30, 8); ctx.fillStyle=this.weapon==='laser'?'red':'cyan'; ctx.fillRect(5, -1, 30, 2); }
+
+                else if (this.weapon === 'crossbow') { ctx.fillStyle='#8B4513'; ctx.fillRect(5, -3, 25, 6); ctx.strokeStyle='#555'; ctx.beginPath(); ctx.moveTo(25,-15); ctx.lineTo(10,0); ctx.lineTo(25,15); ctx.stroke(); }
+
+                else { ctx.fillStyle='#000'; ctx.fillRect(10,-3,15,6); } 
+
+
+
+                if (this.muzzleTimer > 0) { ctx.beginPath(); ctx.arc(35, 0, 8+Math.random()*5, 0, Math.PI*2); ctx.fillStyle=this.weapon==='snowball'||this.weapon==='plasma'?`rgba(200,255,255,${this.muzzleTimer/3})`:`rgba(255,255,0,${this.muzzleTimer/3})`; ctx.fill(); this.muzzleTimer--; } 
+
+                ctx.restore(); 
+
+            } 
+
+            update() { 
+
+                if (this.cooldown > 0) this.cooldown--; 
+
+                if (this.grenadeCooldown > 0) this.grenadeCooldown--; 
+
+                if (playerStats.godMode) this.hp = this.maxHp;
+
+                
+
+                // Regeneration Skill
+
+                if(playerStats.skills.includes('regen') && this.hp < this.maxHp) {
+
+                    this.regenTimer++;
+
+                    if(this.regenTimer >= 120) { this.hp = Math.min(this.maxHp, this.hp + 1); this.regenTimer = 0; }
+
+                }
+
+
+
+                let dx=0, dy=0; 
+
+                let spd = PLAYER_SPEED * this.speedMult;
+
+
+
+                if(cheats.aim && enemies.length > 0) {
+
+                    let nearest = null; let minD = Infinity;
+
+                    enemies.forEach(e => { let d = Math.hypot(e.x - this.x, e.y - this.y); if(d < minD) { minD = d; nearest = e; } });
+
+                    if(nearest) { this.angle = Math.atan2(nearest.y - this.y, nearest.x - this.x); lastAimAngle = this.angle; }
+
+                }
+
+
+
+                if (controlMode === 'PC') { 
+
+                    if (keys['Digit1']) this.trySetWeapon('pistol'); if (keys['Digit2']) this.trySetWeapon('rifle'); if (keys['Digit3']) this.trySetWeapon('shotgun'); if (keys['Digit4']) this.trySetWeapon('sniper'); if (keys['Digit5']) this.trySetWeapon('minigun'); if (keys['Digit6']) this.trySetWeapon('snowball'); if (keys['Digit7']) this.trySetWeapon('bazooka'); if (keys['Digit8']) this.trySetWeapon('laser'); if (keys['Digit9']) this.trySetWeapon('crossbow'); if (keys['Digit0']) this.trySetWeapon('plasma');
+
+                    if (keys['Space']) this.throwGrenade(mouse.x, mouse.y); 
+
+                    if (keys['KeyW'] || keys['ArrowUp']) dy = -spd; if (keys['KeyS'] || keys['ArrowDown']) dy = spd; if (keys['KeyA'] || keys['ArrowLeft']) dx = -spd; if (keys['KeyD'] || keys['ArrowRight']) dx = spd; 
+
+                    if (dx && dy) { dx *= 0.707; dy *= 0.707; } 
+
+                    if(!cheats.aim) { this.angle = Math.atan2(mouse.y-this.y, mouse.x-this.x); lastAimAngle=this.angle; }
+
+                    if (mouse.down) this.shootInput(this.angle); 
+
+                } else { 
+
+                    if (joystickLeft.active) { dx = joystickLeft.x * spd; dy = joystickLeft.y * spd; } 
+
+                    if (joystickRight.active && !cheats.aim) { this.angle = Math.atan2(joystickRight.y, joystickRight.x); lastAimAngle=this.angle; this.shootInput(this.angle); } else if (dx !== 0 || dy !== 0 && !cheats.aim) { this.angle = Math.atan2(dy, dx); } 
+
+                    if(cheats.aim && enemies.length > 0) this.shootInput(this.angle);
+
+                } 
+
+                this.move(dx, dy); 
+
+                if(currentMissionId === 'ONLINE' && myPeerId) { sendNetworkData({ id: myPeerId, type: 'move', x: this.x, y: this.y, angle: this.angle, color: playerStats.color }); }
+
+            } 
+
+            trySetWeapon(wpn) { if ((wpn !== 'pistol' && wpn !== 'rifle' && wpn !== 'shotgun' && wpn !== 'sniper') && !playerStats.unlockedWeapons.includes(wpn)) return; if (playerStats.unlockedWeapons.includes(wpn)) { this.weapon = wpn; updateUI(); } } 
+
+            throwGrenade(tx, ty) { if (this.grenades > 0 && this.grenadeCooldown <= 0) { this.grenades--; this.grenadeCooldown=60; thrownGrenades.push(new GrenadeObj(this.x, this.y, tx, ty)); updateUI(); } } 
+
+            shootInput(angle) { 
+
+                if (this.cooldown > 0) return; this.muzzleTimer=3; 
+
+                if (this.weapon==='shotgun'||this.weapon==='sniper'||this.weapon==='bazooka'||this.weapon==='crossbow') screenShake=5; 
+
+                if (this.weapon==='pistol') this.spawnBullet(angle, 0, 20, 20); 
+
+                else if (this.weapon==='rifle') this.spawnBullet(angle, (Math.random()-0.5)*0.2, 10, 6); 
+
+                else if (this.weapon==='shotgun') { this.spawnBullet(angle,0,15,45); this.spawnBullet(angle+0.15,0,15,45); this.spawnBullet(angle-0.15,0,15,45); } 
+
+                else if (this.weapon==='sniper') this.spawnBullet(angle, 0, 100, 60, 25); 
+
+                else if (this.weapon==='minigun') { this.spawnBullet(angle, (Math.random()-0.5)*0.4, 8, 3); screenShake=2; } 
+
+                else if (this.weapon==='snowball') this.spawnBullet(angle, 0, 10000, 30, 10, 'snowball');
+
+                else if (this.weapon==='bazooka') this.spawnBullet(angle, 0, 200, 100, 8, 'rocket');
+
+                else if (this.weapon==='laser') this.spawnBullet(angle, 0, 50, 10, 30, 'laser');
+
+                else if (this.weapon==='crossbow') this.spawnBullet(angle, 0, 80, 50, 20, 'bolt');
+
+                else if (this.weapon==='plasma') this.spawnBullet(angle, 0, 45, 8, 18, 'plasma_rifle');
+
+            } 
+
+            spawnBullet(angle, spread, dmg, cd, speed=BULLET_SPEED, type='normal') { 
+
+                const finalAngle = angle+spread; const vel = {x:Math.cos(finalAngle)*speed, y:Math.sin(finalAngle)*speed}; 
+
+                let r=4; if(type==='rocket')r=8; if(type==='laser')r=3;
+
+                bullets.push(new Bullet(this.x, this.y, vel, false, dmg, r, type)); 
+
+                this.cooldown=cd; 
+
+                if(currentMissionId === 'ONLINE' && myPeerId) { sendNetworkData({ id: myPeerId, type: 'shoot', x: this.x, y: this.y, vel: vel, dmg: dmg, wType: type }); }
+
+            } 
+
+        }
+
+
+
+        class Enemy extends Entity { 
+
+            constructor(x, y, type) { 
+
+                let r=15, hp=40, c='#FF3333', s=ENEMY_SPEED; 
+
+                if(type==='boss') { r=40; hp=600; c='#A020F0'; s=1.2; } 
+
+                if(type==='tank') { r=25; hp=200; c='#004400'; s=0.8; }
+
+                if(type==='artifact_carrier') { r=20; hp=150; c='#00FFFF'; s=1.0; } 
+
+                if(type==='dummy_static' || type==='dummy_moving') { hp=99999; c='#888'; r=15; }
+
+                if(currentMissionId===6) s*=1.4; if(currentMissionId===8) s*=1.2; if(currentMissionId===17) s*=2.0;
+
+                super(x, y, r, c, hp); 
+
+                this.type=type; this.speed=s; 
+
+                if(type==='dummy_moving') this.moveDir = Math.random()*Math.PI*2;
+
+            } 
+
+            draw() { 
+
+                let a=0; if(player&&!player.dead) a=Math.atan2(player.y-this.y, player.x-this.x); 
+
+                ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(a); 
+
+                let ox=this.x; let oy=this.y; this.x=0; this.y=0; super.drawBase(); this.x=ox; this.y=oy; 
+
+                if(this.type !== 'dummy_static' && this.type !== 'dummy_moving') {
+
+                    ctx.fillStyle=this.type==='boss'?'#4A004A':'#550000'; ctx.fillRect(this.radius-2, -(this.type==='boss'?5:3), this.type==='boss'?25:15, this.type==='boss'?10:6); 
+
+                }
+
+                if(this.type === 'artifact_carrier') { ctx.strokeStyle='#FFF'; ctx.lineWidth=3; ctx.stroke(); }
+
+                ctx.restore(); this.drawHealthBar(); 
+
+            } 
+
+            update() { 
+
+                if (this.cooldown>0) this.cooldown--; 
+
+                if (this.type === 'dummy_static') return;
+
+                if (this.type === 'dummy_moving') { if(Math.random()<0.02) this.moveDir = Math.random()*Math.PI*2; this.move(Math.cos(this.moveDir)*2, Math.sin(this.moveDir)*2); return; }
+
+
+
+                const dist=Math.hypot(player.x-this.x, player.y-this.y); 
+
+                const angle=Math.atan2(player.y-this.y, player.x-this.x); 
+
+                if (currentMissionId===11) { if (dist>500) this.move(Math.cos(angle)*0.5, Math.sin(angle)*0.5); } 
+
+                else { if (dist > 150+this.radius) this.move(Math.cos(angle)*this.speed, Math.sin(angle)*this.speed); else if (dist < 100) this.move(-Math.cos(angle)*this.speed*0.5, -Math.sin(angle)*this.speed*0.5); } 
+
+                let shootDist = this.type==='boss'?600:400; let chance = this.type==='boss'?0.1:0.03; if(currentMissionId===11) chance=0.08; 
+
+                if (dist<shootDist && Math.random()<chance) { const shotA = angle + (Math.random()-0.5)*(currentMissionId===11?0.05:0.3); let dmg=10, bSpeed=BULLET_SPEED, bRad=4; if(this.type==='boss'){dmg=25;bRad=8;} if(currentMissionId===11){dmg=30;bSpeed=20;} bullets.push(new Bullet(this.x, this.y, {x:Math.cos(shotA)*bSpeed, y:Math.sin(shotA)*bSpeed}, true, dmg, bRad)); this.cooldown=40; } 
+
+            } 
+
+            takeDamage(amount) { 
+
+                if(this.type.includes('dummy')) return; 
+
+                this.hp-=amount; 
+
+                if(this.hp<=0 && !this.dead) { 
+
+                    this.dead=true; createParticles(this.x, this.y, this.color); playerStats.totalKills++; 
+
+                    addPlayerXp(this.type==='boss'?100:10); 
+
+                    
+
+                    if(playerStats.skills.includes('vampire') && Math.random() < 0.05) { player.hp = Math.min(player.maxHp, player.hp + 10); createParticles(player.x, player.y, '#FF0000'); }
+
+
+
+                    if(currentMissionId !== 'CUSTOM') {
+
+                        if(this.type === 'artifact_carrier') {
+
+                            let r = Math.random();
+
+                            let dropped = 'rusty_gear';
+
+                            if(r < 0.01) dropped = 'dragon_scale';
+
+                            else if(r < 0.05) dropped = 'alien_circuit';
+
+                            else if(r < 0.1) dropped = 'gold_idol';
+
+                            else if(r < 0.2) dropped = 'blue_crystal';
+
+                            else if(r < 0.5) dropped = 'ancient_coin';
+
+                            drops.push(new DropItem(this.x, this.y, 'artifact', dropped));
+
+                        }
+
+
+
+                        let r=Math.random(); let gC=(currentMissionId===8||currentMissionId===7)?0.4:0.15; 
+
+                        if(r<0.3) drops.push(new DropItem(this.x+10, this.y, 'coin')); 
+
+                        if(r<gC) drops.push(new DropItem(this.x, this.y, 'grenade')); 
+
+                        else if(r<gC+0.3) drops.push(new DropItem(this.x, this.y, 'medkit')); 
+
+                    }
+
+                } 
+
+            } 
+
+        }
+
+
+
+        class Bullet { 
+
+            constructor(x, y, vel, isEnemy, dmg, radius=4, specialType=null) { this.x=x; this.y=y; this.vel=vel; this.isEnemy=isEnemy; this.dmg=dmg; this.radius=radius; this.specialType=specialType; if(specialType==='snowball') this.radius=8; this.dead=false; this.bounced = false; } 
+
+            update() { 
+
+                this.x+=this.vel.x; this.y+=this.vel.y; 
+
+                
+
+                if(this.specialType !== 'laser' && this.specialType !== 'bolt' && !(cheats.wallbang && !this.isEnemy)) {
+
+                    for(let obs of obstacles) if(this.x>obs.x && this.x<obs.x+obs.size && this.y>obs.y && this.y<obs.y+obs.size) { 
+
+                        if(!this.isEnemy && !this.bounced && playerStats.skills.includes('ricochet') && Math.random() < 0.5) {
+
+                            this.vel.x *= -1; this.vel.y *= -1; this.bounced = true; this.x += this.vel.x*2; this.y += this.vel.y*2;
+
+                        } else {
+
+                            this.dead=true; if(this.specialType==='snowball' || this.specialType==='rocket') this.explode(); else createParticles(this.x,this.y,'#888'); 
+
+                        }
+
+                        return; 
+
+                    } 
+
+                }
+
+                if(this.x<0||this.x>canvas.width||this.y<0||this.y>canvas.height) this.dead=true; 
+
+            } 
+
+            draw() { 
+
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2); 
+
+                if(this.specialType==='snowball') { ctx.fillStyle='#FFF'; ctx.shadowBlur=10; ctx.shadowColor='white'; } 
+
+                else if(this.specialType==='rocket') { ctx.fillStyle='#004400'; }
+
+                else if(this.specialType==='laser') { ctx.fillStyle='#FF0000'; ctx.shadowBlur=10; ctx.shadowColor='red'; }
+
+                else if(this.specialType==='slime') { ctx.fillStyle='#00FF00'; }
+
+                else if(this.specialType==='plasma' || this.specialType==='plasma_rifle') { ctx.fillStyle='#00FFFF'; ctx.shadowBlur=5; }
+
+                else if(this.specialType==='soul') { ctx.fillStyle='cyan'; ctx.shadowBlur=5; }
+
+                else if(this.specialType==='bolt') { ctx.fillStyle='#8B4513'; }
+
+                else { ctx.fillStyle=this.isEnemy?(this.radius>4?'#A020F0':'orange'):'#FFFF00'; ctx.shadowBlur=0; } 
+
+                ctx.fill(); ctx.shadowBlur=0; 
+
+            } 
+
+            explode() { 
+
+                createExplosion(this.x, this.y); 
+
+                let range = this.specialType==='rocket' ? 150 : 100;
+
+                let dmg = this.specialType==='rocket' ? 400 : 10000;
+
+                enemies.forEach(en => { if(Math.hypot(en.x-this.x, en.y-this.y)<range) en.takeDamage(dmg); }); 
+
+            } 
+
+        }
+
         function createParticles(x, y, c) { for(let i=0; i<5; i++) particles.push({x,y,color:c, vx:(Math.random()-0.5)*7, vy:(Math.random()-0.5)*7, life:15}); }
+
         function createExplosion(x, y) { for(let i=0; i<30; i++) particles.push({x,y,color:i%2===0?'orange':'red', vx:(Math.random()-0.5)*15, vy:(Math.random()-0.5)*15, life:30}); particles.push({x,y,color:'rgba(255,255,255,0.8)', vx:0, vy:0, life:15, radius:100, isShockwave:true}); }
 
-        const wpnNames = {'pistol':'Пістолет', 'rifle':'Автомат', 'shotgun':'Дробовик', 'sniper':'Снайпер', 'minigun':'Кулемет', 'snowball':'Снігомет'};
-        const wpnKeys = ['pistol', 'rifle', 'shotgun', 'sniper', 'minigun', 'snowball'];
+
+
+        const wpnNames = {'pistol':'Пістолет', 'rifle':'Автомат', 'shotgun':'Дробовик', 'sniper':'Снайпер', 'minigun':'Кулемет', 'snowball':'Снігомет', 'bazooka':'БАЗУКА', 'laser':'ЛАЗЕР', 'crossbow':'АРБАЛЕТ', 'plasma':'ПЛАЗМА'};
+
+        const wpnKeys = ['pistol', 'rifle', 'shotgun', 'sniper', 'minigun', 'snowball', 'bazooka', 'laser', 'crossbow', 'plasma'];
+
         function updateUI() { if(player) { if(controlMode==='PC') document.getElementById('weapon-info').innerText=wpnNames[player.weapon]; document.getElementById('grenade-counter').innerText="💣:"+player.grenades; document.getElementById('coin-counter').innerText="💰:"+playerStats.coins; let xpPerc = (playerStats.xp/playerStats.nextLevelXp)*100; document.getElementById('xp-fill').style.width=xpPerc+'%'; document.getElementById('level-text').innerText="LVL "+playerStats.level; if(controlMode==='MOBILE') { document.querySelectorAll('.wpn-btn').forEach(btn => { let w = btn.getAttribute('data-wpn'); let active = player.weapon === w; let locked = !playerStats.unlockedWeapons.includes(w) || (w==='minigun' && playerStats.level < 5); btn.className = 'wpn-btn' + (active?' active':'') + (locked?' locked':''); }); } } }
-        function setupMobileWeapons() { const bar = document.getElementById('weapon-bar'); bar.innerHTML=''; wpnKeys.forEach(k => { if(k==='snowball' && !playerStats.unlockedWeapons.includes(k)) return; let d=document.createElement('div'); d.className='wpn-btn'; d.setAttribute('data-wpn', k); d.innerText = k.substr(0,4).toUpperCase(); d.onclick = function() { if(player) player.trySetWeapon(k); }; bar.appendChild(d); }); }
+
+        function setupMobileWeapons() { const bar = document.getElementById('weapon-bar'); bar.innerHTML=''; wpnKeys.forEach(k => { if(k==='snowball' && !playerStats.unlockedWeapons.includes(k)) return; let d=document.createElement('div'); d.className='wpn-btn'; d.setAttribute('data-wpn', k); d.innerText = k.substr(0,3).toUpperCase(); d.onclick = function() { if(player) player.trySetWeapon(k); }; bar.appendChild(d); }); }
+
         function throwGrenadeMobile() { if(player) { const d=250; player.throwGrenade(player.x+Math.cos(lastAimAngle)*d, player.y+Math.sin(lastAimAngle)*d); } }
 
-        function showMainMenu() { gameState='MENU'; document.getElementById('menu-overlay').style.display='flex'; document.getElementById('end-game-btn').style.display='none'; document.getElementById('game-ui').style.display='none'; document.querySelector('.shop-btn').style.display='block'; document.getElementById('menu-buttons').style.display='grid'; updateMenuStats(); }
-        function startMission(id) { currentMissionId=id; gameState='PLAYING'; player = new Player(canvas.width/2, canvas.height/2); enemies=[]; bullets=[]; particles=[]; obstacles=[]; drops=[]; thrownGrenades=[]; decorations=[]; gameTime=0; enemiesKilled=0; grenadesKilled=0; bossSpawned=false; zoneTimer=0; keys={}; mouse.down=false; joystickLeft={x:0,y:0,active:false}; joystickRight={x:0,y:0,active:false}; if(id===9) { captureZone.x=canvas.width/2; captureZone.y=canvas.height/2; } for(let i=0; i<30; i++) decorations.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, size:Math.random()*20+10}); for (let i=0; i<12; i++) { let s=40+Math.random()*60; let x=50+Math.random()*(canvas.width-s-100); let y=50+Math.random()*(canvas.height-s-100); if(id===9 && Math.hypot(x-canvas.width/2, y-canvas.height/2)<150) continue; if(Math.hypot(x-player.x, y-player.y)>200) obstacles.push(new Rect(x, y, s)); } let t="Місія"; if(id===1)t="Вижити 20с"; if(id===2)t="Вбити 5"; if(id===3)t="Вбити БОСА"; if(id===4)t="ОРДА 40с"; if(id===5)t="Вбити 50"; if(id===6)t="ХАРД 60с"; if(id===7)t="ПІДРИВ (15)"; if(id===8)t="АПОКАЛІПСИС"; if(id===9)t="ЗАХВАТ"; if(id===10)t="ТЕМРЯВА"; if(id===11)t="СНАЙПЕР"; document.getElementById('mission-text').innerText=t; document.getElementById('menu-overlay').style.display='none'; document.getElementById('game-ui').style.display='block'; updateUI(); }
-        function gameOver(win) { gameState='GAMEOVER'; saveGame(); document.getElementById('menu-overlay').style.display='flex'; document.getElementById('end-game-btn').style.display='block'; document.getElementById('menu-buttons').style.display='none'; document.querySelector('.shop-btn').style.display='none'; let t=document.getElementById('menu-title'); t.innerText=win?"ПЕРЕМОГА":"ПОРАЗКА"; t.style.color=win?"#00FF00":"red"; }
-        function spawnEnemyEdge(forceBoss=false) { let s=Math.floor(Math.random()*4), x, y; if(s===0){x=Math.random()*canvas.width;y=-30;} else if(s===1){x=canvas.width+30;y=Math.random()*canvas.height;} else if(s===2){x=Math.random()*canvas.width;y=canvas.height+30;} else{x=-30;y=Math.random()*canvas.height;} enemies.push(new Enemy(x, y, forceBoss?'boss':'standard')); }
 
-        function updateGame() { if (gameState!=='PLAYING') return; gameTime+=1/60; snowflakes.forEach(f => { f.y+=f.s; if(f.y>canvas.height)f.y=-10; }); if (currentMissionId===3 && !bossSpawned && gameTime>1) { spawnEnemyEdge(true); bossSpawned=true; } let sr=120; if([3,9,10].includes(currentMissionId)) sr=180; if([4,6,8,11].includes(currentMissionId)) sr=60; if (Math.floor(gameTime*60)%sr===0) spawnEnemyEdge(); player.update(); document.getElementById('health-fill').style.width=Math.max(0,player.hp)+'%'; if(currentMissionId===1&&gameTime>=20) gameOver(true); if(currentMissionId===2&&enemiesKilled>=5) gameOver(true); if(currentMissionId===3 && bossSpawned && !enemies.some(e=>e.type==='boss')) gameOver(true); if(currentMissionId===4&&gameTime>=40) gameOver(true); if(currentMissionId===5&&enemiesKilled>=50) gameOver(true); if(currentMissionId===6&&gameTime>=60) gameOver(true); if(currentMissionId===7&&grenadesKilled>=15) gameOver(true); if(currentMissionId===8&&gameTime>=50) gameOver(true); if(currentMissionId===11&&enemiesKilled>=10) gameOver(true); if(currentMissionId===9) { if(Math.hypot(player.x-captureZone.x, player.y-captureZone.y)<captureZone.radius) { zoneTimer+=1/60; if(zoneTimer>=15)gameOver(true); } document.getElementById('stats').innerText=`Zone: ${zoneTimer.toFixed(1)}/15`; } else if(currentMissionId===7) document.getElementById('stats').innerText=`Bomb: ${grenadesKilled}/15`; else document.getElementById('stats').innerText=`Time: ${gameTime.toFixed(0)}`; drops.forEach((m,i)=>{ if(Math.hypot(m.x-player.x, m.y-player.y)<player.radius+m.size) { if(m.type==='medkit'){player.hp=Math.min(player.maxHp, player.hp+25); createParticles(player.x,player.y,'#00FF00');} else if(m.type==='grenade'){player.grenades++; updateUI(); createParticles(player.x,player.y,'#FFA500');} else if(m.type==='coin'){playerStats.coins+=10; updateUI(); createParticles(player.x,player.y,'#FFFF00');} drops.splice(i,1); } }); enemies.forEach((e,i)=>{ e.update(); if(e.dead)enemies.splice(i,1); }); thrownGrenades.forEach((g,i)=>{ g.update(); if(g.dead)thrownGrenades.splice(i,1); }); bullets.forEach((b,i)=>{ b.update(); let hit=false; if(!b.isEnemy) { enemies.forEach(en=>{ if(!hit && Math.hypot(b.x-en.x, b.y-en.y)<en.radius+b.radius) { en.takeDamage(b.dmg); hit=true; if(b.specialType==='snowball'){b.explode();b.dead=true;} else createParticles(b.x,b.y,'red'); } }); } else { if(Math.hypot(b.x-player.x, b.y-player.y)<player.radius+b.radius) { player.hp-=b.dmg; hit=true; createParticles(b.x,b.y,'blue'); screenShake=5; if(player.hp<=0)gameOver(false); } } if(hit||b.dead) bullets.splice(i,1); }); particles.forEach((p,i)=>{ if(p.isShockwave){p.radius+=5;p.life--;}else{p.x+=p.vx;p.y+=p.vy;p.life--;} if(p.life<=0)particles.splice(i,1); }); if(screenShake>0) screenShake*=0.9; }
-        function drawGame() { ctx.save(); if(screenShake>0.5) ctx.translate((Math.random()-0.5)*screenShake, (Math.random()-0.5)*screenShake); ctx.fillStyle='#1a1a2e'; ctx.fillRect(0,0,canvas.width, canvas.height); ctx.fillStyle='rgba(240,240,255,0.1)'; decorations.forEach(d=>{ctx.beginPath();ctx.arc(d.x,d.y,d.size,0,Math.PI*2);ctx.fill();}); if(currentMissionId===9) { ctx.beginPath(); ctx.arc(captureZone.x, captureZone.y, captureZone.radius, 0, Math.PI*2); ctx.fillStyle='rgba(0,100,255,0.3)'; ctx.fill(); ctx.strokeStyle='#0077FF'; ctx.lineWidth=2; ctx.stroke(); } obstacles.forEach(o=>o.draw()); drops.forEach(m=>m.draw()); thrownGrenades.forEach(g=>g.draw()); particles.forEach(p=>{ if(p.isShockwave){ctx.beginPath();ctx.arc(p.x,p.y,p.radius,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${p.life/20})`;ctx.fill();} else{ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,3,3);} }); bullets.forEach(b=>b.draw()); enemies.forEach(e=>e.draw()); if(activeCheats.wh) enemies.forEach(e=>{ ctx.save(); ctx.beginPath(); ctx.moveTo(player.x, player.y); ctx.lineTo(e.x, e.y); ctx.strokeStyle='rgba(255,0,0,0.5)'; ctx.stroke(); ctx.beginPath(); ctx.rect(e.x-e.radius-5, e.y-e.radius-5, e.radius*2+10, e.radius*2+10); ctx.strokeStyle='red'; ctx.stroke(); ctx.restore(); }); if(player.hp>0) player.draw(); ctx.fillStyle='rgba(255,255,255,0.6)'; snowflakes.forEach(f=>{ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,Math.PI*2);ctx.fill();}); if(currentMissionId===10) { ctx.setTransform(1,0,0,1,0,0); let g=ctx.createRadialGradient(player.x, player.y, 50, player.x, player.y, 250); g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,0.98)'); ctx.fillStyle=g; ctx.fillRect(0,0,canvas.width, canvas.height); } ctx.restore(); }
-        function loop() { requestAnimationFrame(loop); if(gameState==='PLAYING'){updateGame(); drawGame();} }
+
+        function showMainMenu() { gameState='MENU'; document.getElementById('menu-overlay').style.display='flex'; document.getElementById('end-game-btn').style.display='none'; document.getElementById('game-ui').style.display='none'; document.querySelector('.shop-btn').style.display='block'; document.getElementById('menu-buttons').style.display='grid'; document.getElementById('training-ui').style.display='none'; updateMenuStats(); document.getElementById('exit-mission-btn').style.display='none'; }
+
+        function clearEnemies() { enemies = []; }
+
+        function playCustomMap() { if(customMap.spawns.length === 0) { alert('No spawns placed!'); return; } startMission('CUSTOM'); }
+
+        function startTraining() { startMission(12); }
+
+        
+
+        function startMission(id) { 
+
+            currentMissionId=id; gameState='PLAYING'; player = new Player(canvas.width/2, canvas.height/2); enemies=[]; bullets=[]; particles=[]; obstacles=[]; drops=[]; thrownGrenades=[]; decorations=[]; gameTime=0; enemiesKilled=0; grenadesKilled=0; bossSpawned=false; zoneTimer=0; keys={}; mouse.down=false; joystickLeft={x:0,y:0,active:false}; joystickRight={x:0,y:0,active:false}; 
+
+            
+
+            // --- PET LOGIC ---
+
+            activePets = []; 
+
+            if(megaEquipMode) {
+
+                // Spawn ALL pets
+
+                const allPetTypes = ['drone', 'slime', 'ufo', 'wisp', 'turret'];
+
+                allPetTypes.forEach((type, index) => {
+
+                    activePets.push(new Pet(type, index));
+
+                });
+
+            } else if(playerStats.currentPet && playerStats.currentPet !== 'none') {
+
+                activePets.push(new Pet(playerStats.currentPet));
+
+            }
+
+
+
+            if(id === 'ONLINE') { document.getElementById('multiplayer-screen').style.display = 'none'; }
+
+            if(id===9) { captureZone.x=canvas.width/2; captureZone.y=canvas.height/2; } 
+
+            
+
+            if(id === 'CUSTOM') { customMap.walls.forEach(w => obstacles.push(new Rect(w.x, w.y, 50))); } else {
+
+                for(let i=0; i<30; i++) decorations.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, size:Math.random()*20+10}); 
+
+                if(id !== 12) { for (let i=0; i<12; i++) { let s=40+Math.random()*60; let x=50+Math.random()*(canvas.width-s-100); let y=50+Math.random()*(canvas.height-s-100); if(id===9 && Math.hypot(x-canvas.width/2, y-canvas.height/2)<150) continue; if(Math.hypot(x-player.x, y-player.y)>200) obstacles.push(new Rect(x, y, s)); } }
+
+            }
+
+
+
+            let t="Місія"; if(id===1)t=TEXTS[curLang].goal+" 20s"; if(id===12)t="TRAINING"; if(id==='CUSTOM')t="CUSTOM MAP"; if(id==='ONLINE')t="MULTIPLAYER";
+
+            document.getElementById('mission-text').innerText=t; document.getElementById('menu-overlay').style.display='none'; document.getElementById('game-ui').style.display='block'; 
+
+            document.getElementById('exit-mission-btn').style.display='block';
+
+            if(id === 12) document.getElementById('training-ui').style.display='block';
+
+            updateUI(); 
+
+        }
+
+
+
+        function gameOver(win) { gameState='GAMEOVER'; saveGame(); document.getElementById('menu-overlay').style.display='flex'; document.getElementById('end-game-btn').style.display='block'; document.getElementById('menu-buttons').style.display='none'; document.querySelector('.shop-btn').style.display='none'; document.getElementById('exit-mission-btn').style.display='none'; let t=document.getElementById('menu-title'); t.innerText=win?"ПЕРЕМОГА":"ПОРАЗКА"; t.style.color=win?"#00FF00":"red"; }
+
+        
+
+        function spawnEnemyEdge(forceType=null) { 
+
+            let s=Math.floor(Math.random()*4), x, y; if(s===0){x=Math.random()*canvas.width;y=-30;} else if(s===1){x=canvas.width+30;y=Math.random()*canvas.height;} else if(s===2){x=Math.random()*canvas.width;y=canvas.height+30;} else{x=-30;y=Math.random()*canvas.height;} 
+
+            enemies.push(new Enemy(x, y, forceType ? forceType : 'standard')); 
+
+        }
+
+
+
+        function updateGame() { 
+
+            if (gameState!=='PLAYING') return; 
+
+            gameTime+=1/60; 
+
+            snowflakes.forEach(f => { f.y+=f.s; if(f.y>canvas.height)f.y=-10; }); 
+
+            
+
+            if(currentMissionId === 12) {
+
+                let staticCount = enemies.filter(e => e.type === 'dummy_static').length; let movingCount = enemies.filter(e => e.type === 'dummy_moving').length;
+
+                if(document.getElementById('tr-static').checked && staticCount < 3) enemies.push(new Enemy(Math.random()*canvas.width, Math.random()*canvas.height, 'dummy_static'));
+
+                if(document.getElementById('tr-moving').checked && movingCount < 3) enemies.push(new Enemy(Math.random()*canvas.width, Math.random()*canvas.height, 'dummy_moving'));
+
+            } else if (currentMissionId === 'CUSTOM') {
+
+                if(Math.floor(gameTime*60)%100===0 && customMap.spawns.length > 0) { let s = customMap.spawns[Math.floor(Math.random()*customMap.spawns.length)]; enemies.push(new Enemy(s.x, s.y, 'standard')); }
+
+            } else if (currentMissionId === 'ONLINE') {
+
+                if(isHost && Math.floor(gameTime*60)%60===0) { let ex = Math.random()*canvas.width, ey = -30; enemies.push(new Enemy(ex, ey, 'standard')); sendNetworkData({type:'spawnEnemy', x:ex, y:ey, kind:'standard'}); }
+
+            } else {
+
+                if ((currentMissionId===3||currentMissionId===15||currentMissionId===18) && !bossSpawned && gameTime>1) { spawnEnemyEdge('boss'); if(currentMissionId===15)spawnEnemyEdge('boss'); bossSpawned=true; } 
+
+                let sr=120; if([3,9,10,13,14,15].includes(currentMissionId)) sr=180; if([4,6,8,11,16,17,18].includes(currentMissionId)) sr=60; 
+
+                if (Math.floor(gameTime*60)%sr===0) {
+
+                    let type = 'standard';
+
+                    if(Math.random() < 0.2) type = 'artifact_carrier';
+
+                    if(currentMissionId===16) type = 'tank';
+
+                    spawnEnemyEdge(currentMissionId===14 && Math.random()>0.7 ? 'tank' : type); 
+
+                }
+
+            }
+
+
+
+            player.update();
+
+            activePets.forEach(p => p.update()); // UPDATE ALL PETS
+
+            document.getElementById('health-fill').style.width=Math.max(0,(player.hp/player.maxHp)*100)+'%'; 
+
+            
+
+            if(currentMissionId===1&&gameTime>=20) gameOver(true); 
+
+            if(currentMissionId===2&&enemiesKilled>=5) gameOver(true); 
+
+            if((currentMissionId===3||currentMissionId===15) && bossSpawned && !enemies.some(e=>e.type==='boss')) gameOver(true); 
+
+            if(currentMissionId===4&&gameTime>=40) gameOver(true); 
+
+            if(currentMissionId===5&&enemiesKilled>=50) gameOver(true); 
+
+            if(currentMissionId===6&&gameTime>=60) gameOver(true); 
+
+            if(currentMissionId===7&&grenadesKilled>=15) gameOver(true); 
+
+            if(currentMissionId===8&&gameTime>=50) gameOver(true); 
+
+            if(currentMissionId===11&&enemiesKilled>=10) gameOver(true); 
+
+            if(currentMissionId===13&&enemiesKilled>=30) gameOver(true);
+
+            if(currentMissionId===14&&gameTime>=60) gameOver(true);
+
+            if(currentMissionId===16&&enemiesKilled>=15) gameOver(true);
+
+            if(currentMissionId===17&&gameTime>=45) gameOver(true);
+
+            if(currentMissionId===18&&bossSpawned&&enemiesKilled>=3) gameOver(true);
+
+
+
+            if(currentMissionId===9) { if(Math.hypot(player.x-captureZone.x, player.y-captureZone.y)<captureZone.radius) { zoneTimer+=1/60; if(zoneTimer>=15)gameOver(true); } document.getElementById('stats').innerText=`Zone: ${zoneTimer.toFixed(1)}/15`; } else if(currentMissionId===7) document.getElementById('stats').innerText=`Bomb: ${grenadesKilled}/15`; else document.getElementById('stats').innerText=`Time: ${gameTime.toFixed(0)}`; 
+
+            
+
+            drops.forEach((m,i)=>{ 
+
+                if(cheats.loot) { let angle = Math.atan2(player.y - m.y, player.x - m.x); m.x += Math.cos(angle) * 5; m.y += Math.sin(angle) * 5; }
+
+                let puDist = player.radius + m.size + (playerStats.skills.includes('magnet') ? 50 : 0);
+
+
+
+                if(Math.hypot(m.x-player.x, m.y-player.y) < puDist) { 
+
+                    if(m.type==='medkit'){player.hp=Math.min(player.maxHp, player.hp+25); createParticles(player.x,player.y,'#00FF00');} 
+
+                    else if(m.type==='grenade'){player.grenades++; updateUI(); createParticles(player.x,player.y,'#FFA500');} 
+
+                    else if(m.type==='coin'){playerStats.coins+=10; updateUI(); createParticles(player.x,player.y,'#FFFF00');} 
+
+                    else if(m.type==='artifact'){
+
+                        playerStats.inventory.push(m.artifactType); 
+
+                        createParticles(player.x,player.y,'cyan'); 
+
+                        let artName = artifactTypes.find(a=>a.id===m.artifactType).name;
+
+                        showArtifactEffect(artName);
+
+                    }
+
+                    drops.splice(i,1); 
+
+                } 
+
+            }); 
+
+            enemies.forEach((e,i)=>{ e.update(); if(e.dead)enemies.splice(i,1); }); 
+
+            thrownGrenades.forEach((g,i)=>{ g.update(); if(g.dead)thrownGrenades.splice(i,1); }); 
+
+            bullets.forEach((b,i)=>{ 
+
+                b.update(); let hit=false; 
+
+                if(!b.isEnemy) { 
+
+                    enemies.forEach(en=>{ 
+
+                        if(!hit && !b.dead && Math.hypot(b.x-en.x, b.y-en.y)<en.radius+b.radius) { 
+
+                            en.takeDamage(b.dmg); if(b.specialType!=='laser' && b.specialType!=='bolt') hit=true; 
+
+                            if(b.specialType==='snowball'||b.specialType==='rocket'){b.explode();b.dead=true;} else createParticles(b.x,b.y,'red'); 
+
+                        } 
+
+                    }); 
+
+                } else { 
+
+                    if(Math.hypot(b.x-player.x, b.y-player.y)<player.radius+b.radius) { 
+
+                        let dmg = b.dmg;
+
+                        if(playerStats.skills.includes('toughness')) dmg *= 0.8; // Toughness Skill
+
+                        player.hp-=dmg; hit=true; createParticles(b.x,b.y,'blue'); screenShake=5; if(player.hp<=0)gameOver(false); 
+
+                    } 
+
+                } 
+
+                if(hit||b.dead) bullets.splice(i,1); 
+
+            }); 
+
+            particles.forEach((p,i)=>{ if(p.isShockwave){p.radius+=5;p.life--;}else{p.x+=p.vx;p.y+=p.vy;p.life--;} if(p.life<=0)particles.splice(i,1); }); if(screenShake>0) screenShake*=0.9; 
+
+        }
+
+
+
+        function drawGame() { 
+
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+
+            ctx.save(); if(screenShake>0.5) ctx.translate((Math.random()-0.5)*screenShake, (Math.random()-0.5)*screenShake); 
+
+            
+
+            if(gameState === 'EDITOR') {
+
+                ctx.strokeStyle = '#333'; ctx.lineWidth = 1;
+
+                for(let x=0; x<canvas.width; x+=50) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
+
+                for(let y=0; y<canvas.height; y+=50) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+
+                ctx.fillStyle = '#667'; customMap.walls.forEach(o => ctx.fillRect(o.x, o.y, 50, 50));
+
+                ctx.fillStyle = 'rgba(255,0,0,0.5)'; customMap.spawns.forEach(s => ctx.fillRect(s.x+10, s.y+10, 30, 30));
+
+            } else {
+
+                ctx.fillStyle='#1a1a2e'; ctx.fillRect(0,0,canvas.width, canvas.height); 
+
+                ctx.fillStyle='rgba(240,240,255,0.1)'; decorations.forEach(d=>{ctx.beginPath();ctx.arc(d.x,d.y,d.size,0,Math.PI*2);ctx.fill();}); 
+
+                if(currentMissionId===9) { ctx.beginPath(); ctx.arc(captureZone.x, captureZone.y, captureZone.radius, 0, Math.PI*2); ctx.fillStyle='rgba(0,100,255,0.3)'; ctx.fill(); ctx.strokeStyle='#0077FF'; ctx.lineWidth=2; ctx.stroke(); } 
+
+                obstacles.forEach(o=>o.draw()); 
+
+                drops.forEach(m=>m.draw()); thrownGrenades.forEach(g=>g.draw()); 
+
+                particles.forEach(p=>{ if(p.isShockwave){ctx.beginPath();ctx.arc(p.x,p.y,p.radius,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${p.life/20})`;ctx.fill();} else{ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,3,3);} }); 
+
+                bullets.forEach(b=>b.draw()); enemies.forEach(e=>e.draw()); 
+
+                
+
+                if(cheats.wh) { enemies.forEach(e => { ctx.strokeStyle = 'red'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(player.x, player.y); ctx.lineTo(e.x, e.y); ctx.stroke(); ctx.strokeStyle = 'yellow'; ctx.beginPath(); ctx.arc(e.x, e.y, e.radius + 5, 0, Math.PI * 2); ctx.stroke(); }); }
+
+                if(currentMissionId === 'ONLINE') { for(let id in remotePlayers) { let rp = remotePlayers[id]; if(Date.now() - rp.lastUpdate > 3000) { delete remotePlayers[id]; continue; } ctx.save(); ctx.translate(rp.x, rp.y); ctx.rotate(rp.angle); ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fillStyle=rp.color; ctx.fill(); ctx.stroke(); ctx.fillStyle='#000'; ctx.fillRect(10,-3,15,6); ctx.restore(); ctx.fillStyle='lime'; ctx.font='12px Arial'; ctx.fillText("Player", rp.x-20, rp.y-20); } }
+
+                if(player && player.hp>0) player.draw(); 
+
+                activePets.forEach(p => p.draw()); // DRAW ALL PETS
+
+                ctx.fillStyle='rgba(255,255,255,0.6)'; snowflakes.forEach(f=>{ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,Math.PI*2);ctx.fill();}); 
+
+                if(currentMissionId===10 && !cheats.wh) { ctx.setTransform(1,0,0,1,0,0); let g=ctx.createRadialGradient(player.x, player.y, 50, player.x, player.y, 250); g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,0.98)'); ctx.fillStyle=g; ctx.fillRect(0,0,canvas.width, canvas.height); } 
+
+            }
+
+            ctx.restore(); 
+
+        }
+
+        function loop() { requestAnimationFrame(loop); if(gameState==='PLAYING' || gameState==='EDITOR'){updateGame(); drawGame();} }
+
         window.addEventListener('keydown', e=>{if(controlMode==='PC')keys[e.code]=true;}); window.addEventListener('keyup', e=>{if(controlMode==='PC')keys[e.code]=false;}); window.addEventListener('mousemove', e=>{if(controlMode==='PC'){mouse.x=e.clientX; mouse.y=e.clientY;}}); window.addEventListener('mousedown', ()=>{if(controlMode==='PC')mouse.down=true;}); window.addEventListener('mouseup', ()=>{if(controlMode==='PC')mouse.down=false;});
+
         function handleJoystick(t, isLeft) { const z=isLeft?document.getElementById('stick-left'):document.getElementById('stick-right'); const r=z.getBoundingClientRect(); let dx=t.clientX-(r.left+r.width/2), dy=t.clientY-(r.top+r.height/2); const md=r.width/2, d=Math.min(Math.hypot(dx,dy), md), a=Math.atan2(dy,dx); const knob=isLeft?document.getElementById('knob-left'):document.getElementById('knob-right'); knob.style.transform=`translate(-50%,-50%) translate(${Math.cos(a)*d}px, ${Math.sin(a)*d}px)`; if(isLeft){joystickLeft.x=Math.cos(a)*(d/md); joystickLeft.y=Math.sin(a)*(d/md); joystickLeft.active=true; joystickLeft.id=t.identifier;} else{joystickRight.x=Math.cos(a)*(d/md); joystickRight.y=Math.sin(a)*(d/md); joystickRight.active=true; joystickRight.id=t.identifier;} }
+
         function resetJoystick(isLeft) { if(isLeft){joystickLeft.active=false;joystickLeft.x=0;joystickLeft.y=0;document.getElementById('knob-left').style.transform='translate(-50%,-50%)';} else{joystickRight.active=false;joystickRight.x=0;joystickRight.y=0;document.getElementById('knob-right').style.transform='translate(-50%,-50%)';} }
-        document.addEventListener('touchstart', e=>{ if(controlMode!=='MOBILE'||gameState!=='PLAYING')return; for(let i=0;i<e.changedTouches.length;i++){ let t=e.changedTouches[i]; if(t.target.id==='mobile-grenade-btn'||t.target.classList.contains('wpn-btn'))continue; let zl=document.getElementById('stick-left').getBoundingClientRect(); if(t.clientX>=zl.left&&t.clientX<=zl.right&&t.clientY>=zl.top&&t.clientY<=zl.bottom) handleJoystick(t,true); let zr=document.getElementById('stick-right').getBoundingClientRect(); if(t.clientX>=zr.left&&t.clientX<=zr.right&&t.clientY>=zr.top&&t.clientY<=zr.bottom) handleJoystick(t,false); } },{passive:false});
-        document.addEventListener('touchmove', e=>{ if(controlMode!=='MOBILE'||gameState!=='PLAYING')return; e.preventDefault(); for(let i=0;i<e.changedTouches.length;i++){ let t=e.changedTouches[i]; if(t.identifier===joystickLeft.id)handleJoystick(t,true); if(t.identifier===joystickRight.id)handleJoystick(t,false); } },{passive:false});
-        document.addEventListener('touchend', e=>{ if(controlMode!=='MOBILE')return; for(let i=0;i<e.changedTouches.length;i++){ let t=e.changedTouches[i]; if(t.identifier===joystickLeft.id)resetJoystick(true); if(t.identifier===joystickRight.id)resetJoystick(false); } });
+
+        
+
+        // --- IMPROVED HUD DRAG LOGIC ---
+
+        document.addEventListener('touchstart', e=>{ 
+
+            if(controlMode!=='MOBILE') return;
+
+            // HUD EDIT
+
+            if(isHudEditing && e.target.closest('.hud-draggable')) {
+
+                hudDragEl = e.target.closest('.hud-draggable');
+
+                activeHudTouchId = e.changedTouches[0].identifier;
+
+                let rect = hudDragEl.getBoundingClientRect();
+
+                hudDragOffset.x = e.changedTouches[0].clientX - rect.left;
+
+                hudDragOffset.y = e.changedTouches[0].clientY - rect.top;
+
+                return;
+
+            }
+
+            if(gameState!=='PLAYING')return; 
+
+            for(let i=0;i<e.changedTouches.length;i++){ 
+
+                let t=e.changedTouches[i]; 
+
+                if(t.target.id==='mobile-grenade-btn'||t.target.classList.contains('wpn-btn') || t.target.id==='exit-mission-btn' || t.target.id==='cheat-toggle-btn')continue; 
+
+                let zl=document.getElementById('stick-left').getBoundingClientRect(); 
+
+                if(t.clientX>=zl.left&&t.clientX<=zl.right&&t.clientY>=zl.top&&t.clientY<=zl.bottom) handleJoystick(t,true); 
+
+                let zr=document.getElementById('stick-right').getBoundingClientRect(); 
+
+                if(t.clientX>=zr.left&&t.clientX<=zr.right&&t.clientY>=zr.top&&t.clientY<=zr.bottom) handleJoystick(t,false); 
+
+            } 
+
+        },{passive:false});
+
+        document.addEventListener('touchmove', e=>{ 
+
+            if(controlMode!=='MOBILE') return;
+
+            // HUD MOVE
+
+            if(isHudEditing && hudDragEl) {
+
+                e.preventDefault();
+
+                for(let i=0; i<e.changedTouches.length; i++) {
+
+                    if(e.changedTouches[i].identifier === activeHudTouchId) {
+
+                        let t = e.changedTouches[i];
+
+                        hudDragEl.style.left = (t.clientX - hudDragOffset.x) + 'px';
+
+                        hudDragEl.style.top = (t.clientY - hudDragOffset.y) + 'px';
+
+                        hudDragEl.style.bottom = 'auto'; hudDragEl.style.right = 'auto'; hudDragEl.style.transform = 'none';
+
+                    }
+
+                }
+
+                return;
+
+            }
+
+            if(gameState!=='PLAYING')return; 
+
+            e.preventDefault(); for(let i=0;i<e.changedTouches.length;i++){ let t=e.changedTouches[i]; if(t.identifier===joystickLeft.id)handleJoystick(t,true); if(t.identifier===joystickRight.id)handleJoystick(t,false); } 
+
+        },{passive:false});
+
+        document.addEventListener('touchend', e=>{ 
+
+            if(controlMode!=='MOBILE')return; 
+
+            if(isHudEditing && hudDragEl) { hudDragEl=null; activeHudTouchId=null; return; }
+
+            for(let i=0;i<e.changedTouches.length;i++){ let t=e.changedTouches[i]; if(t.identifier===joystickLeft.id)resetJoystick(true); if(t.identifier===joystickRight.id)resetJoystick(false); } 
+
+        });
+
+        
+
+        canvas.addEventListener('mousedown', (e) => { if(gameState === 'EDITOR') handleEditorClick(e.clientX, e.clientY); });
+
+        document.addEventListener('touchstart', (e) => { if(gameState === 'EDITOR' && !isHudEditing) handleEditorClick(e.touches[0].clientX, e.touches[0].clientY); }, {passive:false});
+
+
+
         loop();
+
     </script>
+
 </body>
+
 </html>
